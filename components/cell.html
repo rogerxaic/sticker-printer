@@ -1,0 +1,25 @@
+<div class="cell-placeholder" x-show="!$store.stickerStore.images[index]">
+  <svg fill="none" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+  </svg>
+  <span>Select & Paste Image</span>
+  <span class="sub" x-text="'Sticker ' + (index + 1)">Sticker 1</span>
+</div>
+<img 
+  x-show="$store.stickerStore.images[index]"
+  :src="$store.stickerStore.images[index]"
+  class="sticker-image"
+  :style="{ objectFit: $store.stickerStore.fits[index], transform: `rotate(${$store.stickerStore.rotations[index]}deg) scale(${$store.stickerStore.scales[index]})` }"
+  alt="Sticker"
+/>
+<div class="cell-toolbar" x-show="$store.stickerStore.images[index]">
+  <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="$store.stickerStore.rotate(index)">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+  </button>
+  <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="$store.stickerStore.toggleFit(index)" x-text="$store.stickerStore.fits[index] === 'contain' ? 'Contain' : 'Cover'">
+    Contain
+  </button>
+  <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="$store.stickerStore.deleteImage(index)">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+  </button>
+</div>

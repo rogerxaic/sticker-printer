@@ -1,0 +1,14 @@
+  </div>
+  <div class="sidebar-footer">
+    <button class="btn btn-primary" id="btn-print" @click="$store.stickerStore.printPage()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.82l-.24-2.22A2 2 0 018.46 9.4h7.08a2 2 0 011.98 2.2l-.24 2.22M16.5 19.5h-9a1.5 1.5 0 01-1.5-1.5v-2.25a1.5 1.5 0 011.5-1.5h9a1.5 1.5 0 011.5 1.5V18a1.5 1.5 0 01-1.5 1.5zM16.5 6V4.5A1.5 1.5 0 0015 3H9a1.5 1.5 0 00-1.5 1.5V6m9 0H6.75"></path>
+      </svg>
+      Print Sticker Sheet
+    </button>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+      <button class="btn btn-secondary" id="btn-demo" @click="$store.stickerStore.loadDemo()">Demo images</button>
+      <button class="btn btn-danger" id="btn-clear-all" @click="$store.stickerStore.clearAll()">Clear Sheet</button>
+    </div>
+  </div>
+</aside>

@@ -1,0 +1,83 @@
+<div class="card">
+  <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <span>⚙️ Sheet Layout (cm)</span>
+    <div style="display: flex; gap: 0.4rem; align-items: center;">
+      <button class="lock-toggle-btn" :class="{ 'unlocked': !$store.stickerStore.layoutLocked }" @click="$store.stickerStore.layoutLocked = !$store.stickerStore.layoutLocked" x-text="$store.stickerStore.layoutLocked ? '🔒 Locked' : '🔓 Unlocked'">🔒 Locked</button>
+      <button class="reset-icon-btn" @click="$store.stickerStore.resetLayout()" title="Reset layout to defaults">↻</button>
+    </div>
+  </div>
+  
+  <div id="layout-inputs-container">
+    <!-- TOP MARGIN -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Top Margin</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.top.toFixed(2)">0.75</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.top" min="0" max="3" step="0.05" value="0.75" :disabled="$store.stickerStore.layoutLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.top" min="0" max="3" step="0.05" value="0.75" :disabled="$store.stickerStore.layoutLocked">
+      </div>
+    </div>
+
+    <!-- BOTTOM MARGIN -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Bottom Margin</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.bottom.toFixed(2)">0.75</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.bottom" min="0" max="3" step="0.05" value="0.75" :disabled="$store.stickerStore.layoutLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.bottom" min="0" max="3" step="0.05" value="0.75" :disabled="$store.stickerStore.layoutLocked">
+      </div>
+    </div>
+
+    <!-- LEFT MARGIN -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Left Margin</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.left.toFixed(2)">0.50</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.left" min="0" max="3" step="0.05" value="0.5" :disabled="$store.stickerStore.layoutLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.left" min="0" max="3" step="0.05" value="0.5" :disabled="$store.stickerStore.layoutLocked">
+      </div>
+    </div>
+
+    <!-- RIGHT MARGIN -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Right Margin</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.right.toFixed(2)">0.50</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.right" min="0" max="3" step="0.05" value="0.5" :disabled="$store.stickerStore.layoutLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.right" min="0" max="3" step="0.05" value="0.5" :disabled="$store.stickerStore.layoutLocked">
+      </div>
+    </div>
+
+    <!-- COLUMN GAP (X) -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Center Vert. Gap</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.gapX.toFixed(2)">0.25</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.gapX" min="0" max="2" step="0.05" value="0.25" :disabled="$store.stickerStore.layoutLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.gapX" min="0" max="2" step="0.05" value="0.25" :disabled="$store.stickerStore.layoutLocked">
+      </div>
+    </div>
+
+    <!-- ROW GAP (Y) -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Center Horiz. Gap</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.gapY.toFixed(2)">0.00</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.gapY" min="0" max="2" step="0.05" value="0.00" :disabled="$store.stickerStore.layoutLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.gapY" min="0" max="2" step="0.05" value="0.00" :disabled="$store.stickerStore.layoutLocked">
+      </div>
+    </div>
+  </div>
+</div>

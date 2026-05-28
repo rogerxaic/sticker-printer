@@ -1,0 +1,89 @@
+/* css/cell.css */
+.sticker-cell {
+  background: #fafafb;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  padding: var(--sticker-padding);
+  border: 1px dashed rgba(99, 102, 241, 0.3);
+  border-radius: 6px;
+}
+
+.sticker-cell::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  color: rgba(15, 23, 42, 0.4);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sticker-cell.has-image::after {
+  display: none !important;
+}
+
+.sticker-cell:hover {
+  background: #f5f3ff;
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.sticker-cell.selected {
+  background: #eef2ff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) inset, 0 8px 24px rgba(99, 102, 241, 0.12);
+  z-index: 5;
+}
+
+.sticker-cell.selected::after {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.cell-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+  padding: 1.5rem;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.cell-placeholder svg {
+  width: 32px;
+  height: 32px;
+  stroke: #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.sticker-cell:hover .cell-placeholder svg {
+  stroke: var(--accent);
+  transform: translateY(-2px);
+}
+
+.cell-placeholder span {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.cell-placeholder .sub {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-top: -0.25rem;
+}

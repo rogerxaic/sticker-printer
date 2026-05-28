@@ -1,0 +1,48 @@
+/* css/variables.css */
+:root {
+  --margin-top: 7.5mm;
+  --margin-bottom: 7.5mm;
+  --margin-left: 5mm;
+  --margin-right: 5mm;
+  --gap-x: 2.5mm;
+  --gap-y: 0mm;
+  --offset-x: 0mm;
+  --offset-y: 0mm;
+  --sticker-padding: 0cm;
+  
+  /* Colors & Theme */
+  --bg-primary: #0b0f19;
+  --bg-secondary: rgba(22, 28, 45, 0.6);
+  --bg-glass: rgba(15, 23, 42, 0.65);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-glow: rgba(99, 102, 241, 0.3);
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #10b981;
+  
+  --sticker-width: 98.75mm;
+  --sticker-height: 141mm;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(20, 24, 43, 1) 0px, transparent 100%);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}

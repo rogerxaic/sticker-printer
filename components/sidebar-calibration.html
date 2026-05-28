@@ -1,0 +1,38 @@
+<div class="card">
+  <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+    <span>🔧 Print Calibration (mm)</span>
+    <div style="display: flex; gap: 0.4rem; align-items: center;">
+      <button class="lock-toggle-btn" :class="{ 'unlocked': !$store.stickerStore.calibrationLocked }" @click="$store.stickerStore.calibrationLocked = !$store.stickerStore.calibrationLocked" x-text="$store.stickerStore.calibrationLocked ? '🔒 Locked' : '🔓 Unlocked'">🔒 Locked</button>
+      <button class="reset-icon-btn" @click="$store.stickerStore.resetCalibration()" title="Reset offsets to 0">↻</button>
+    </div>
+  </div>
+  <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+    Nudge printed content if your printer offset shifts the page:
+  </p>
+  
+  <div id="calibration-inputs-container">
+    <!-- CALIBRATION X -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Horiz. Shift (X)</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.offsetX.toFixed(2)">0</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.offsetX" min="-10" max="10" step="0.5" value="0" :disabled="$store.stickerStore.calibrationLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.offsetX" min="-10" max="10" step="0.5" value="0" :disabled="$store.stickerStore.calibrationLocked">
+      </div>
+    </div>
+
+    <!-- CALIBRATION Y -->
+    <div class="control-group">
+      <div class="control-label">
+        <span>Vert. Shift (Y)</span>
+        <span class="control-value" x-text="$store.stickerStore.layout.offsetY.toFixed(2)">0</span>
+      </div>
+      <div class="input-row">
+        <input type="range" x-model.number="$store.stickerStore.layout.offsetY" min="-10" max="10" step="0.5" value="0" :disabled="$store.stickerStore.calibrationLocked">
+        <input type="number" x-model.number="$store.stickerStore.layout.offsetY" min="-10" max="10" step="0.5" value="0" :disabled="$store.stickerStore.calibrationLocked">
+      </div>
+    </div>
+  </div>
+</div>
