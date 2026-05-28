@@ -37,5 +37,19 @@ export const state = {
     const bottom = parseFloat(this.layout.bottom) || 0;
     const gapY = parseFloat(this.layout.gapY) || 0;
     return ((297 - (top + bottom) * 10 - gapY * 10) / 2).toFixed(2);
+  },
+
+  rootStyles() {
+    return {
+      '--margin-top': `${this.layout.top}cm`,
+      '--margin-bottom': `${this.layout.bottom}cm`,
+      '--margin-left': `${this.layout.left}cm`,
+      '--margin-right': `${this.layout.right}cm`,
+      '--gap-x': `${this.layout.gapX}cm`,
+      '--gap-y': `${this.layout.gapY}cm`,
+      '--sticker-padding': `${this.layout.padding}cm`,
+      '--offset-x': `${this.layout.offsetX}mm`,
+      '--offset-y': `${this.layout.offsetY}mm`
+    };
   }
 };

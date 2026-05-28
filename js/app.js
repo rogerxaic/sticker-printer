@@ -6,8 +6,7 @@ import { utils } from './utils.js';
 import { events } from './events.js';
 
 document.addEventListener('alpine:init', () => {
-  Alpine.store('stickerStore', {
-    ...state,
+  const store = {
     ...actions,
     ...settings,
     ...utils,
@@ -45,5 +44,9 @@ document.addEventListener('alpine:init', () => {
       window.addEventListener('keydown', (e) => this.handleKeyDown(e));
       window.addEventListener('resize', () => this.resizeSheet());
     }
-  });
+  };
+
+  Object.defineProperties(store, Object.getOwnPropertyDescriptors(state));
+
+  Alpine.store('stickerStore', store);
 });
