@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StickerPrint - Premium A4 Sticker Sheet Printer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* CSS VARIABLES FOR THE GRID LAYOUT (in mm) */
+    :root {
+      --margin-top: 7.5mm;
+      --margin-bottom: 7.5mm;
+      --margin-left: 5mm;
+      --margin-right: 5mm;
+      --gap-x: 2.5mm;
+      --gap-y: 0mm;
+      --offset-x: 0mm;
+      --offset-y: 0mm;
+      --sticker-padding: 0cm;
+      
+      /* Colors & Theme */
+      --bg-primary: #0b0f19;
+      --bg-secondary: rgba(22, 28, 45, 0.6);
+      --bg-glass: rgba(15, 23, 42, 0.65);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+      
+      /* Calculations shown in UI */
+      --sticker-width: 98.75mm;
+      --sticker-height: 141mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(20, 24, 43, 1) 0px, transparent 100%);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* APP LAYOUT */
+    .app-container {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* SIDEBAR (CONTROLS) */
+    .sidebar {
+      width: 380px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-glass);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 1.75rem;
+      border-bottom: 1px solid var(--border-glass);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .logo-text h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    /* SLIDERS / ADJUSTMENTS */
+    .control-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .control-value {
+      font-family: monospace;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      -webkit-appearance: none;
+      accent-color: var(--accent);
+    }
+
+    input[type="number"] {
+      width: 70px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-glass);
+      border-radius: 6px;
+      color: var(--text-main);
+      padding: 0.35rem 0.5rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      text-align: right;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    /* MEASUREMENT OVERVIEW */
+    .dimension-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 6px;
+      color: #a5b4fc;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .dimension-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .dimension-box {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.75rem;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .dimension-box .label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .dimension-box .val {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 0.25rem;
+    }
+
+    /* INSTRUCTION LIST */
+    .instructions-list {
+      list-style-type: none;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .instructions-list li {
+      position: relative;
+      padding-left: 1.25rem;
+    }
+
+    .instructions-list li::before {
+      content: "•";
+      color: var(--accent);
+      font-size: 1.2rem;
+      position: absolute;
+      left: 0.25rem;
+      top: -0.1rem;
+    }
+
+    /* SIDEBAR BUTTONS */
+    .sidebar-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border-glass);
+      background: rgba(10, 15, 30, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: white;
+    }
+
+    /* MAIN PREVIEW AREA */
+    .preview-area {
+      flex: 1;
+      height: 100%;
+      background: rgba(5, 5, 10, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* SCALABLE WRAPPER */
+    .sheet-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* PHYSICAL SHEET REPRESENTATION */
+    .a4-sheet {
+      width: 210mm;
+      height: 297mm;
+      background: #ffffff;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.3) inset;
+      border-radius: 4px;
+      position: relative;
+      box-sizing: border-box;
+      padding-top: var(--margin-top);
+      padding-bottom: var(--margin-bottom);
+      padding-left: var(--margin-left);
+      padding-right: var(--margin-right);
+      transition: box-shadow 0.3s ease;
+      transform-origin: center center;
+    }
+
+    /* THE GRID CONTAINER */
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      column-gap: var(--gap-x);
+      row-gap: var(--gap-y);
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* STICKER CELLS */
+    .sticker-cell {
+      background: #fafafb;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      padding: var(--sticker-padding);
+      /* On-screen visual guide only */
+      border: 1px dashed rgba(99, 102, 241, 0.3);
+      border-radius: 6px;
+    }
+
+    .sticker-cell::after {
+      /* Screen layout helper: subtle sticker labels */
+      content: attr(data-label);
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(15, 23, 42, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      color: rgba(15, 23, 42, 0.4);
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .sticker-cell:hover {
+      background: #f5f3ff;
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    /* CELL SELECTION STATES */
+    .sticker-cell.selected {
+      background: #eef2ff;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) inset, 0 8px 24px rgba(99, 102, 241, 0.12);
+      z-index: 5;
+    }
+
+    .sticker-cell.selected::after {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* CELL EMPTY STATE PLACEHOLDER */
+    .cell-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      color: #94a3b8;
+      text-align: center;
+      padding: 1.5rem;
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .cell-placeholder svg {
+      width: 32px;
+      height: 32px;
+      stroke: #cbd5e1;
+      transition: all 0.2s ease;
+    }
+
+    .sticker-cell:hover .cell-placeholder svg {
+      stroke: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .cell-placeholder span {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .cell-placeholder .sub {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-top: -0.25rem;
+    }
+
+    /* Hide placeholder and helper labels when an image is present */
+    .sticker-cell:has(.sticker-image) .cell-placeholder,
+    .sticker-cell:has(.sticker-image)::after {
+      display: none !important;
+    }
+
+    /* CELL IMAGE DISPLAY */
+    .sticker-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 1;
+      display: block;
+      pointer-events: none;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* CELL TOOLBAR OVERLAY */
+    .cell-toolbar {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      display: flex;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 4px 6px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sticker-cell:hover .cell-toolbar {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    .toolbar-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .toolbar-btn svg {
+      display: block;
+    }
+
+    .toolbar-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .toolbar-btn.delete-icon-btn {
+      color: #fca5a5;
+      padding: 6px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+    }
+
+    .toolbar-btn.delete-icon-btn:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* INPUT FIELD HIDDEN */
+    .hidden-file-input {
+      display: none;
+    }
+
+    /* Safety lock buttons styling */
+    .lock-toggle-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      outline: none;
+    }
+    
+    .lock-toggle-btn.unlocked {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+
+    .lock-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+    
+    .lock-toggle-btn.unlocked:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+
+    .reset-icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.95rem;
+      padding: 0.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .reset-icon-btn:hover {
+      color: var(--text-main);
+      transform: rotate(-45deg);
+    }
+
+    /* Style inputs when disabled */
+    input:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* CALIBRATION GRID LINES FOR PREVIEW (helps visualize shifts) */
+    .calibration-overlay-x, .calibration-overlay-y {
+      position: absolute;
+      pointer-events: none;
+      display: none; /* Can toggle on if needed */
+    }
+
+    /* TOAST SYSTEM */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 999;
+    }
+
+    .toast {
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-glass);
+      color: var(--text-main);
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* PRINT LAYOUT ADJUSTMENTS */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0; /* Let the body padding control margins physically */
+      }
+      
+      html, body {
+        background: #ffffff !important;
+        background-image: none !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        overflow: visible !important;
+      }
+
+      .app-container {
+        display: block !important;
+        width: 210mm !important;
+        height: 297mm !important;
+      }
+
+      .sidebar, .toast-container, .delete-btn {
+        display: none !important;
+      }
+
+      .preview-area {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        display: block !important;
+        overflow: visible !important;
+      }
+
+      .sheet-wrapper {
+        display: block !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+
+      .a4-sheet {
+        position: absolute !important;
+        /* Applied physical page calibration offset directly in print layout */
+        top: var(--offset-y) !important;
+        left: var(--offset-x) !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        box-sizing: border-box !important;
+        padding-top: var(--margin-top) !important;
+        padding-bottom: var(--margin-bottom) !important;
+        padding-left: var(--margin-left) !important;
+        padding-right: var(--margin-right) !important;
+        transform: none !important; /* Remove screen scaling scaling */
+      }
+
+      .sticker-grid {
+        column-gap: var(--gap-x) !important;
+        row-gap: var(--gap-y) !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        grid-template-rows: 1fr 1fr !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .sticker-cell {
+        border: none !important; /* Hide screen dashed helper borders */
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .sticker-cell::after {
+        display: none !important; /* Hide cell visual labels */
+      }
+
+      .cell-placeholder {
+        display: none !important; /* Hide empty icons & instructions */
+      }
+
+      .sticker-image {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">🖨️</div>
+        <div class="logo-text">
+          <h1>StickerPrint</h1>
+          <p>A4 Page Alignment Tool</p>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- INSTRUCTIONS -->
+        <div class="card">
+          <div class="section-title">💡 How it works</div>
+          <ul class="instructions-list">
+            <li>Select a sticker slot on the page (or click to browse).</li>
+            <li>Paste an image directly with <strong>Cmd+V / Ctrl+V</strong>.</li>
+            <li>Drag & drop files straight onto any cell.</li>
+            <li>Adjust margins below if alignment is off.</li>
+          </ul>
+        </div>
+
+        <!-- CALCULATED VALUES -->
+        <div class="card">
+          <div class="section-title">📐 Sticker Dimensions</div>
+          <div class="dimension-grid">
+            <div class="dimension-box">
+              <div class="label">Width</div>
+              <div class="val" id="disp-sticker-width">98.75 mm</div>
+            </div>
+            <div class="dimension-box">
+              <div class="label">Height</div>
+              <div class="val" id="disp-sticker-height">141.00 mm</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STICKER INNER INSET (Always Enabled) -->
+        <div class="card">
+          <div class="section-title">🔍 Sticker Inner Inset (cm)</div>
+          <div class="control-group" style="margin-bottom: 0;">
+            <div class="control-label">
+              <span>Image Padding</span>
+              <span class="control-value" id="val-padding">0.00</span>
+            </div>
+            <div class="input-row">
+              <input type="range" id="input-padding" min="0" max="1" step="0.05" value="0.00">
+              <input type="number" id="num-padding" min="0" max="1" step="0.05" value="0.00">
+            </div>
+          </div>
+        </div>
+
+        <!-- LAYOUT SETTINGS -->
+        <div class="card">
+          <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span>⚙️ Sheet Layout (cm)</span>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <button class="lock-toggle-btn" id="btn-lock-layout" title="Unlock margins/gaps configurations">🔒 Locked</button>
+              <button class="reset-icon-btn" id="btn-reset-layout" title="Reset layout to defaults">↻</button>
+            </div>
+          </div>
+          
+          <div id="layout-inputs-container">
+            <!-- TOP MARGIN -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Top Margin</span>
+                <span class="control-value" id="val-top">0.75</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-top" min="0" max="3" step="0.05" value="0.75" disabled>
+                <input type="number" id="num-top" min="0" max="3" step="0.05" value="0.75" disabled>
+              </div>
+            </div>
+
+            <!-- BOTTOM MARGIN -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Bottom Margin</span>
+                <span class="control-value" id="val-bottom">0.75</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-bottom" min="0" max="3" step="0.05" value="0.75" disabled>
+                <input type="number" id="num-bottom" min="0" max="3" step="0.05" value="0.75" disabled>
+              </div>
+            </div>
+
+            <!-- LEFT MARGIN -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Left Margin</span>
+                <span class="control-value" id="val-left">0.50</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-left" min="0" max="3" step="0.05" value="0.5" disabled>
+                <input type="number" id="num-left" min="0" max="3" step="0.05" value="0.5" disabled>
+              </div>
+            </div>
+
+            <!-- RIGHT MARGIN -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Right Margin</span>
+                <span class="control-value" id="val-right">0.50</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-right" min="0" max="3" step="0.05" value="0.5" disabled>
+                <input type="number" id="num-right" min="0" max="3" step="0.05" value="0.5" disabled>
+              </div>
+            </div>
+
+            <!-- COLUMN GAP (X) -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Center Vert. Gap</span>
+                <span class="control-value" id="val-gap-x">0.25</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-gap-x" min="0" max="2" step="0.05" value="0.25" disabled>
+                <input type="number" id="num-gap-x" min="0" max="2" step="0.05" value="0.25" disabled>
+              </div>
+            </div>
+
+            <!-- ROW GAP (Y) -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Center Horiz. Gap</span>
+                <span class="control-value" id="val-gap-y">0.00</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-gap-y" min="0" max="2" step="0.05" value="0" disabled>
+                <input type="number" id="num-gap-y" min="0" max="2" step="0.05" value="0" disabled>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRINTER CALIBRATION OFFSET -->
+        <div class="card">
+          <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span>🔧 Print Calibration (mm)</span>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <button class="lock-toggle-btn" id="btn-lock-calibration" title="Unlock calibration parameters">🔒 Locked</button>
+              <button class="reset-icon-btn" id="btn-reset-calibration" title="Reset offsets to 0">↻</button>
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+            Nudge printed content if your printer offset shifts the page:
+          </p>
+          
+          <div id="calibration-inputs-container">
+            <!-- CALIBRATION X -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Horiz. Shift (X)</span>
+                <span class="control-value" id="val-offset-x">0</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-offset-x" min="-10" max="10" step="0.5" value="0" disabled>
+                <input type="number" id="num-offset-x" min="-10" max="10" step="0.5" value="0" disabled>
+              </div>
+            </div>
+
+            <!-- CALIBRATION Y -->
+            <div class="control-group">
+              <div class="control-label">
+                <span>Vert. Shift (Y)</span>
+                <span class="control-value" id="val-offset-y">0</span>
+              </div>
+              <div class="input-row">
+                <input type="range" id="input-offset-y" min="-10" max="10" step="0.5" value="0" disabled>
+                <input type="number" id="num-offset-y" min="-10" max="10" step="0.5" value="0" disabled>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR FOOTER ACTIONS -->
+      <div class="sidebar-footer">
+        <button class="btn btn-primary" id="btn-print">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.82l-.24-2.22A2 2 0 018.46 9.4h7.08a2 2 0 011.98 2.2l-.24 2.22M16.5 19.5h-9a1.5 1.5 0 01-1.5-1.5v-2.25a1.5 1.5 0 011.5-1.5h9a1.5 1.5 0 011.5 1.5V18a1.5 1.5 0 01-1.5 1.5zM16.5 6V4.5A1.5 1.5 0 0015 3H9a1.5 1.5 0 00-1.5 1.5V6m9 0H6.75"></path>
+          </svg>
+          Print Sticker Sheet
+        </button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <button class="btn btn-secondary" id="btn-demo">Demo images</button>
+          <button class="btn btn-danger" id="btn-clear-all">Clear Sheet</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- PREVIEW VIEWPORT -->
+    <main class="preview-area">
+      <div class="sheet-wrapper">
+        <div class="a4-sheet" id="a4-sheet">
+          <div class="sticker-grid">
+            <!-- STICKER 1 (Top Left) -->
+            <div class="sticker-cell selected" data-index="0" data-label="Top-Left">
+              <div class="cell-placeholder">
+                <svg fill="none" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Select & Paste Image</span>
+                <span class="sub">Sticker 1</span>
+              </div>
+              <div class="cell-toolbar">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 0)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+                </button>
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 0)">
+                  Contain
+                </button>
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 0)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- STICKER 2 (Top Right) -->
+            <div class="sticker-cell" data-index="1" data-label="Top-Right">
+              <div class="cell-placeholder">
+                <svg fill="none" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Select & Paste Image</span>
+                <span class="sub">Sticker 2</span>
+              </div>
+              <div class="cell-toolbar">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 1)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+                </button>
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 1)">
+                  Contain
+                </button>
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 1)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- STICKER 3 (Bottom Left) -->
+            <div class="sticker-cell" data-index="2" data-label="Bottom-Left">
+              <div class="cell-placeholder">
+                <svg fill="none" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Select & Paste Image</span>
+                <span class="sub">Sticker 3</span>
+              </div>
+              <div class="cell-toolbar">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 2)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+                </button>
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 2)">
+                  Contain
+                </button>
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 2)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- STICKER 4 (Bottom Right) -->
+            <div class="sticker-cell" data-index="3" data-label="Bottom-Right">
+              <div class="cell-placeholder">
+                <svg fill="none" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Select & Paste Image</span>
+                <span class="sub">Sticker 4</span>
+              </div>
+              <div class="cell-toolbar">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 3)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+                </button>
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 3)">
+                  Contain
+                </button>
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 3)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- HIDDEN INPUT FOR FILE PICKER FALLBACK -->
+    <input type="file" id="file-picker" class="hidden-file-input" accept="image/*">
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script>
+    // Image state holder: holds the active ObjectURL or null for the 4 slots
+    const stickerImages = [null, null, null, null];
+    const stickerRotations = [0, 0, 0, 0]; // 0, 90, 180, 270 degrees
+    const stickerFits = ['contain', 'contain', 'contain', 'contain']; // 'contain' or 'cover'
+    let selectedIndex = 0; // Default to first sticker
+
+    // DOM ELEMENTS
+    const cells = document.querySelectorAll('.sticker-cell');
+    const filePicker = document.getElementById('file-picker');
+    const a4Sheet = document.getElementById('a4-sheet');
+    const btnPrint = document.getElementById('btn-print');
+    const btnClearAll = document.getElementById('btn-clear-all');
+    const btnDemo = document.getElementById('btn-demo');
+    
+    // Sliders & inputs mapping (Both Layout and Calibration offsets)
+    const layoutSettings = {
+      top: { slider: 'input-top', num: 'num-top', disp: 'val-top', cssVar: '--margin-top', unit: 'cm' },
+      bottom: { slider: 'input-bottom', num: 'num-bottom', disp: 'val-bottom', cssVar: '--margin-bottom', unit: 'cm' },
+      left: { slider: 'input-left', num: 'num-left', disp: 'val-left', cssVar: '--margin-left', unit: 'cm' },
+      right: { slider: 'input-right', num: 'num-right', disp: 'val-right', cssVar: '--margin-right', unit: 'cm' },
+      gapX: { slider: 'input-gap-x', num: 'num-gap-x', disp: 'val-gap-x', cssVar: '--gap-x', unit: 'cm' },
+      gapY: { slider: 'input-gap-y', num: 'num-gap-y', disp: 'val-gap-y', cssVar: '--gap-y', unit: 'cm' },
+      padding: { slider: 'input-padding', num: 'num-padding', disp: 'val-padding', cssVar: '--sticker-padding', unit: 'cm' },
+      offsetX: { slider: 'input-offset-x', num: 'num-offset-x', disp: 'val-offset-x', cssVar: '--offset-x', unit: 'mm' },
+      offsetY: { slider: 'input-offset-y', num: 'num-offset-y', disp: 'val-offset-y', cssVar: '--offset-y', unit: 'mm' },
+    };
+
+    // Initialize layout settings from local storage or defaults
+    function initLayout() {
+      // Load saved values or set defaults
+      Object.keys(layoutSettings).forEach(key => {
+        const config = layoutSettings[key];
+        const savedValue = localStorage.getItem(`sticker_printer_${key}`);
+        const defaultVal = document.getElementById(config.slider).getAttribute('value') || document.getElementById(config.slider).value;
+        const val = savedValue !== null ? savedValue : defaultVal;
+        
+        // Update input element values
+        document.getElementById(config.slider).value = val;
+        document.getElementById(config.num).value = val;
+        document.getElementById(config.disp).textContent = Number(val).toFixed(2);
+        
+        // Set CSS variables
+        document.documentElement.style.setProperty(config.cssVar, `${val}${config.unit}`);
+      });
+      
+      calculateStickerDimensions();
+      setupLayoutListeners();
+      setupLockControls();
+    }
+
+    // Connect slider + numeric input sync logic
+    function setupLayoutListeners() {
+      Object.keys(layoutSettings).forEach(key => {
+        const config = layoutSettings[key];
+        const slider = document.getElementById(config.slider);
+        const numberInput = document.getElementById(config.num);
+
+        const updateValue = (newVal) => {
+          slider.value = newVal;
+          numberInput.value = newVal;
+          document.getElementById(config.disp).textContent = Number(newVal).toFixed(2);
+          
+          // Apply to stylesheet
+          document.documentElement.style.setProperty(config.cssVar, `${newVal}${config.unit}`);
+          
+          // Save to local storage
+          localStorage.setItem(`sticker_printer_${key}`, newVal);
+          
+          calculateStickerDimensions();
+          resizeA4Sheet();
+        };
+
+        slider.addEventListener('input', (e) => updateValue(e.target.value));
+        numberInput.addEventListener('input', (e) => updateValue(e.target.value));
+      });
+    }
+
+    // Lock / Unlock toggling setup
+    function setupLockControls() {
+      // Layout Safety Lock
+      const btnLockLayout = document.getElementById('btn-lock-layout');
+      const layoutInputs = document.querySelectorAll('#layout-inputs-container input');
+      
+      btnLockLayout.addEventListener('click', () => {
+        const isLocked = btnLockLayout.textContent.includes('Locked');
+        if (isLocked) {
+          // Unlock
+          btnLockLayout.textContent = '🔓 Unlocked';
+          btnLockLayout.classList.add('unlocked');
+          layoutInputs.forEach(input => input.disabled = false);
+          showToast("🔓 Layout settings unlocked!");
+        } else {
+          // Lock
+          btnLockLayout.textContent = '🔒 Locked';
+          btnLockLayout.classList.remove('unlocked');
+          layoutInputs.forEach(input => input.disabled = true);
+          showToast("🔒 Layout settings locked!");
+        }
+      });
+
+      // Reset Layout defaults
+      const btnResetLayout = document.getElementById('btn-reset-layout');
+      btnResetLayout.addEventListener('click', () => {
+        const defaults = {
+          top: 0.75,
+          bottom: 0.75,
+          left: 0.50,
+          right: 0.50,
+          gapX: 0.25,
+          gapY: 0.00,
+          padding: 0.00
+        };
+        Object.keys(defaults).forEach(key => {
+          const config = layoutSettings[key];
+          const val = defaults[key];
+          
+          document.getElementById(config.slider).value = val;
+          document.getElementById(config.num).value = val;
+          document.getElementById(config.disp).textContent = Number(val).toFixed(2);
+          document.documentElement.style.setProperty(config.cssVar, `${val}${config.unit}`);
+          localStorage.setItem(`sticker_printer_${key}`, val);
+        });
+        calculateStickerDimensions();
+        showToast("⚙️ Layout margins reset to defaults!");
+      });
+
+      // Calibration Safety Lock
+      const btnLockCalibration = document.getElementById('btn-lock-calibration');
+      const calibrationInputs = document.querySelectorAll('#calibration-inputs-container input');
+      
+      btnLockCalibration.addEventListener('click', () => {
+        const isLocked = btnLockCalibration.textContent.includes('Locked');
+        if (isLocked) {
+          // Unlock
+          btnLockCalibration.textContent = '🔓 Unlocked';
+          btnLockCalibration.classList.add('unlocked');
+          calibrationInputs.forEach(input => input.disabled = false);
+          showToast("🔓 Print Calibration unlocked!");
+        } else {
+          // Lock
+          btnLockCalibration.textContent = '🔒 Locked';
+          btnLockCalibration.classList.remove('unlocked');
+          calibrationInputs.forEach(input => input.disabled = true);
+          showToast("🔒 Print Calibration locked!");
+        }
+      });
+
+      // Reset Calibration offsets
+      const btnResetCalibration = document.getElementById('btn-reset-calibration');
+      btnResetCalibration.addEventListener('click', () => {
+        const defaults = {
+          offsetX: 0,
+          offsetY: 0
+        };
+        Object.keys(defaults).forEach(key => {
+          const config = layoutSettings[key];
+          const val = defaults[key];
+          
+          document.getElementById(config.slider).value = val;
+          document.getElementById(config.num).value = val;
+          document.getElementById(config.disp).textContent = Number(val).toFixed(2);
+          document.documentElement.style.setProperty(config.cssVar, `${val}${config.unit}`);
+          localStorage.setItem(`sticker_printer_${key}`, val);
+        });
+        showToast("🔧 Print Calibration offsets reset to 0!");
+      });
+    }
+
+    // Calculate absolute dimensions in millimeters for layout review card
+    function calculateStickerDimensions() {
+      const topMargin = parseFloat(document.getElementById('num-top').value) * 10; // mm
+      const bottomMargin = parseFloat(document.getElementById('num-bottom').value) * 10; // mm
+      const leftMargin = parseFloat(document.getElementById('num-left').value) * 10; // mm
+      const rightMargin = parseFloat(document.getElementById('num-right').value) * 10; // mm
+      const gapX = parseFloat(document.getElementById('num-gap-x').value) * 10; // mm
+      const gapY = parseFloat(document.getElementById('num-gap-y').value) * 10; // mm
+
+      const totalPageW = 210; // mm
+      const totalPageH = 297; // mm
+
+      // Calculated Sticker Width: (PageWidth - margins - gapX) / 2
+      const stickerW = (totalPageW - leftMargin - rightMargin - gapX) / 2;
+      // Calculated Sticker Height: (PageHeight - margins - gapY) / 2
+      const stickerH = (totalPageH - topMargin - bottomMargin - gapY) / 2;
+
+      document.getElementById('disp-sticker-width').textContent = `${stickerW.toFixed(2)} mm`;
+      document.getElementById('disp-sticker-height').textContent = `${stickerH.toFixed(2)} mm`;
+    }
+
+    // Apply image styles (rotation + fit mode aspect ratio adjustments)
+    function applyImageStyles(index) {
+      const cell = cells[index];
+      const img = cell.querySelector('.sticker-image');
+      if (!img) return;
+
+      const rotation = stickerRotations[index];
+      const fit = stickerFits[index];
+
+      img.style.objectFit = fit;
+
+      // Calculate scale factor for 90 or 270 deg rotation
+      const w = cell.clientWidth;
+      const h = cell.clientHeight;
+      const ratio = w / h;
+
+      let scale = 1;
+      if (rotation === 90 || rotation === 270) {
+        if (fit === 'contain') {
+          scale = Math.min(ratio, 1 / ratio);
+        } else {
+          scale = Math.max(ratio, 1 / ratio);
+        }
+      }
+
+      img.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+    }
+
+    // Rotate image by 90 deg increments
+    function rotateStickerImage(event, index) {
+      event.stopPropagation(); // Prevent trigger file selection
+      
+      stickerRotations[index] = (stickerRotations[index] + 90) % 360;
+      applyImageStyles(index);
+      showToast(`🔄 Sticker ${index + 1} rotated to ${stickerRotations[index]}°`);
+    }
+
+    // Toggle Fit mode between Contain and Cover
+    function toggleStickerFit(event, index) {
+      event.stopPropagation(); // Prevent trigger file selection
+      
+      const currentFit = stickerFits[index];
+      const newFit = currentFit === 'contain' ? 'cover' : 'contain';
+      stickerFits[index] = newFit;
+
+      // Update button text in the cell toolbar
+      const fitBtn = cells[index].querySelector('.fit-btn');
+      if (fitBtn) {
+        fitBtn.textContent = newFit.charAt(0).toUpperCase() + newFit.slice(1);
+      }
+
+      applyImageStyles(index);
+      showToast(`🖼️ Sticker ${index + 1} fit mode: ${newFit}`);
+    }
+
+    // CELL SELECTION
+    cells.forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        // Prevent click trigger file-picker if clicking toolbar buttons
+        if (e.target.closest('.cell-toolbar')) return;
+        
+        const idx = parseInt(cell.getAttribute('data-index'));
+        selectStickerCell(idx);
+        
+        // If empty, open file picker as convenience fallback
+        if (!stickerImages[idx]) {
+          filePicker.click();
+        }
+      });
+      
+      // DRAG AND DROP
+      cell.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        cell.classList.add('selected');
+      });
+
+      cell.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        const idx = parseInt(cell.getAttribute('data-index'));
+        if (idx !== selectedIndex) {
+          cell.classList.remove('selected');
+        }
+      });
+
+      cell.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const idx = parseInt(cell.getAttribute('data-index'));
+        selectStickerCell(idx);
+        
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          if (file.type.startsWith('image/')) {
+            loadImage(file, idx);
+          } else {
+            showToast("⚠️ Only images are supported!");
+          }
+        }
+      });
+    });
+
+    function selectStickerCell(index) {
+      selectedIndex = index;
+      cells.forEach((cell, idx) => {
+        if (idx === index) {
+          cell.classList.add('selected');
+        } else {
+          cell.classList.remove('selected');
+        }
+      });
+    }
+
+    // CLIPBOARD PASTE LISTENER (GLOBAL)
+    window.addEventListener('paste', (e) => {
+      const clipboardItems = e.clipboardData.items;
+      let foundImage = false;
+
+      for (let i = 0; i < clipboardItems.length; i++) {
+        const item = clipboardItems[i];
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          loadImage(file, selectedIndex);
+          foundImage = true;
+          break;
+        }
+      }
+
+      if (foundImage) {
+        showToast("📸 Image pasted from clipboard!");
+      }
+    });
+
+    // FILE PICKER SELECTION FALLBACK
+    filePicker.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        loadImage(e.target.files[0], selectedIndex);
+        e.target.value = ''; // Reset file picker state
+      }
+    });
+
+    // LOAD IMAGE FILE INTO SLOT
+    function loadImage(file, index) {
+      // Revoke old URL if exists to clear memory leak
+      if (stickerImages[index]) {
+        URL.revokeObjectURL(stickerImages[index]);
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      stickerImages[index] = objectUrl;
+
+      // Reset orientation and fit state for new image
+      stickerRotations[index] = 0;
+      stickerFits[index] = 'contain';
+
+      const cell = cells[index];
+      
+      // Reset fit mode button label
+      const fitBtn = cell.querySelector('.fit-btn');
+      if (fitBtn) fitBtn.textContent = 'Contain';
+
+      // Remove placeholder contents or old images
+      const existingImg = cell.querySelector('.sticker-image');
+      if (existingImg) {
+        existingImg.remove();
+      }
+
+      // Create and append image tag
+      const img = document.createElement('img');
+      img.src = objectUrl;
+      img.className = 'sticker-image';
+      img.alt = `Sticker image ${index + 1}`;
+      cell.appendChild(img);
+
+      // Apply initial style mappings
+      applyImageStyles(index);
+      
+      // Auto focus next empty cell for rapid sequential pasting
+      focusNextEmptyCell();
+    }
+
+    // Focus next cell that doesn't have an image
+    function focusNextEmptyCell() {
+      for (let i = 0; i < 4; i++) {
+        const nextIdx = (selectedIndex + 1 + i) % 4;
+        if (!stickerImages[nextIdx]) {
+          selectStickerCell(nextIdx);
+          break;
+        }
+      }
+    }
+
+    // DELETE STICKER SLOT IMAGE
+    function deleteStickerImage(event, index) {
+      event.stopPropagation(); // Avoid selecting cell
+      
+      if (stickerImages[index]) {
+        URL.revokeObjectURL(stickerImages[index]);
+        stickerImages[index] = null;
+      }
+      
+      stickerRotations[index] = 0;
+      stickerFits[index] = 'contain';
+
+      const cell = cells[index];
+      
+      const fitBtn = cell.querySelector('.fit-btn');
+      if (fitBtn) fitBtn.textContent = 'Contain';
+
+      const img = cell.querySelector('.sticker-image');
+      if (img) {
+        img.remove();
+      }
+      
+      selectStickerCell(index);
+      showToast(`🗑️ Sticker ${index + 1} cleared`);
+    }
+
+    // KEYBOARD DELETE HANDLER
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const cell = cells[selectedIndex];
+        const img = cell.querySelector('.sticker-image');
+        if (img) {
+          deleteStickerImage(e, selectedIndex);
+        }
+      }
+    });
+
+    // PRINT TRIGGER
+    btnPrint.addEventListener('click', () => {
+      // Check if we have at least one image pasted
+      const hasImage = stickerImages.some(img => img !== null);
+      if (!hasImage) {
+        showToast("⚠️ Add at least one image before printing!");
+        return;
+      }
+      window.print();
+    });
+
+    // CLEAR ALL
+    btnClearAll.addEventListener('click', () => {
+      for (let i = 0; i < 4; i++) {
+        if (stickerImages[i]) {
+          URL.revokeObjectURL(stickerImages[i]);
+          stickerImages[i] = null;
+        }
+        stickerRotations[i] = 0;
+        stickerFits[i] = 'contain';
+        const img = cells[i].querySelector('.sticker-image');
+        if (img) img.remove();
+        
+        const fitBtn = cells[i].querySelector('.fit-btn');
+        if (fitBtn) fitBtn.textContent = 'Contain';
+      }
+      selectStickerCell(0);
+      showToast("🧹 Sticker sheet reset!");
+    });
+
+    // DEMO LOAD IMAGES
+    btnDemo.addEventListener('click', () => {
+      const demoImages = [
+        'https://picsum.photos/id/1025/600/800',
+        'https://picsum.photos/id/237/600/800',
+        'https://picsum.photos/id/1084/600/800',
+        'https://picsum.photos/id/200/600/800'
+      ];
+      
+      showToast("⏳ Fetching demo images...");
+      
+      demoImages.forEach((url, idx) => {
+        fetch(url)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], `demo_${idx}.jpg`, { type: 'image/jpeg' });
+            loadImage(file, idx);
+            if (idx === demoImages.length - 1) {
+              showToast("✨ Demo images loaded!");
+            }
+          })
+          .catch(err => {
+            console.error("Demo load failed:", err);
+            showToast("❌ Failed loading demo images. Check internet connection.");
+          });
+      });
+    });
+
+    // SCREEN RESIZER (Transform Scales A4 to Viewport)
+    function resizeA4Sheet() {
+      const wrapper = document.querySelector('.sheet-wrapper');
+      const sheet = document.getElementById('a4-sheet');
+      
+      const wrapperW = wrapper.clientWidth;
+      const wrapperH = wrapper.clientHeight;
+      
+      // Calculate sizes in px
+      const pxPerMm = 3.779527559; // CSS standard px per mm
+      const sheetW = 210 * pxPerMm;
+      const sheetH = 297 * pxPerMm;
+      
+      const padding = 40; // browser window spacing offset
+      const scaleX = (wrapperW - padding) / sheetW;
+      const scaleY = (wrapperH - padding) / sheetH;
+      const scale = Math.min(scaleX, scaleY, 1);
+      
+      sheet.style.transform = `scale(${scale})`;
+
+      // Recalculate styles for all active images to adapt rotation scales
+      for (let i = 0; i < 4; i++) {
+        applyImageStyles(i);
+      }
+    }
+
+    // Toast Notification helper
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      container.appendChild(toast);
+      
+      // Remove toast after 3s
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // WINDOW ACTIONS
+    window.addEventListener('resize', resizeA4Sheet);
+    
+    // Init on start
+    window.addEventListener('DOMContentLoaded', () => {
+      initLayout();
+      resizeA4Sheet();
+      // Ensure visual scale is refreshed after fonts / layout settles
+      setTimeout(resizeA4Sheet, 100);
+    });
+  </script>
+</body>
+</html>
