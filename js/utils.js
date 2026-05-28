@@ -1,28 +1,8 @@
 /* js/utils.js */
 export const utils = {
   updateRotationScales() {
-    const cellElements = document.querySelectorAll('.sticker-cell');
     for (let i = 0; i < 4; i++) {
-      const cellEl = cellElements[i];
-      if (!cellEl) continue;
-
-      const rotation = this.rotations[i];
-      const fit = this.fits[i];
-
-      if (rotation !== 90 && rotation !== 270) {
-        this.scales[i] = 1;
-        continue;
-      }
-
-      const w = cellEl.clientWidth;
-      const h = cellEl.clientHeight;
-      if (w === 0 || h === 0) {
-        this.scales[i] = 1;
-        continue;
-      }
-
-      const ratio = w / h;
-      this.scales[i] = fit === 'contain' ? Math.min(ratio, 1 / ratio) : Math.max(ratio, 1 / ratio);
+      this.scales[i] = 1;
     }
   },
 

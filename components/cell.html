@@ -9,6 +9,11 @@
   x-show="$store.stickerStore.images[index]"
   :src="$store.stickerStore.images[index]"
   class="sticker-image"
+  :class="{
+    'rotated-90': $store.stickerStore.rotations[index] === 90,
+    'rotated-180': $store.stickerStore.rotations[index] === 180,
+    'rotated-270': $store.stickerStore.rotations[index] === 270
+  }"
   :style="{ objectFit: $store.stickerStore.fits[index], transform: `rotate(${$store.stickerStore.rotations[index]}deg) scale(${$store.stickerStore.scales[index]})` }"
   alt="Sticker"
 />

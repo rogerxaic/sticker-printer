@@ -97,5 +97,12 @@
     object-fit: var(--fit) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sticker-image.rotated-90,
+  .sticker-image.rotated-270 {
+    width: 100cqh !important;
+    height: 100cqw !important;
   }
 }

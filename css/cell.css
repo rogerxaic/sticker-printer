@@ -12,6 +12,7 @@
   padding: var(--sticker-padding);
   border: 1px dashed rgba(99, 102, 241, 0.3);
   border-radius: 6px;
+  container-type: size;
 }
 
 .sticker-cell::after {
