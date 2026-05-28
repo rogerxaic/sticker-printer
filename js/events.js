@@ -1,6 +1,7 @@
 /* js/events.js */
 export const events = {
   handlePaste(event) {
+    if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
     const clipboardItems = event.clipboardData.items;
     let foundImage = false;
 
@@ -20,6 +21,7 @@ export const events = {
   },
 
   handleKeyDown(event) {
+    if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
     if (event.key === 'Delete' || event.key === 'Backspace') {
       const activeImage = this.images[this.selectedIndex];
       if (activeImage) {

@@ -69,6 +69,15 @@ document.addEventListener('alpine:init', () => {
             this.scales = parsed;
           }
         }
+
+        const savedAddresses = localStorage.getItem('sticker_printer_addresses');
+        if (savedAddresses) {
+          const parsed = JSON.parse(savedAddresses);
+          if (Array.isArray(parsed)) {
+            while (parsed.length < 8) parsed.push('');
+            this.addresses = parsed;
+          }
+        }
       } catch (err) {
         console.error("Failed to load sticker data from localStorage:", err);
       }
@@ -90,6 +99,7 @@ document.addEventListener('alpine:init', () => {
           localStorage.setItem('sticker_printer_rotations', JSON.stringify(this.rotations));
           localStorage.setItem('sticker_printer_fits', JSON.stringify(this.fits));
           localStorage.setItem('sticker_printer_scales', JSON.stringify(this.scales));
+          localStorage.setItem('sticker_printer_addresses', JSON.stringify(this.addresses));
         } catch (e) {
           if (e.name === 'QuotaExceededError' || e.code === 22) {
             this.showToast("⚠️ Storage full! Unable to save some images for next session.");

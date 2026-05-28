@@ -93,9 +93,12 @@
 
   .sticker-image {
     display: block;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    translate: -50% -50% !important;
     width: 100% !important;
     height: 100% !important;
-    object-fit: var(--fit) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     flex-shrink: 0 !important;
@@ -122,12 +125,17 @@
     width: 100% !important;
     height: 50% !important;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
+    padding: 6px !important;
     overflow: hidden !important;
+    box-sizing: border-box !important;
   }
 
   .stamp-box {
+    position: relative !important;
+    margin-bottom: 4px !important;
     width: 66.55mm !important;
     height: 36.48mm !important;
     border: none !important;
@@ -136,6 +144,33 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    flex-shrink: 0 !important;
+    align-self: flex-end !important;
+    margin-right: 4px !important;
+  }
+
+  .address-input {
+    position: static !important;
+    width: calc(100% - 8px) !important;
+    margin: 0 4px 4px 4px !important;
+    max-width: 90mm !important;
+    flex: 1 !important;
+    border: none !important;
+    background: transparent !important;
+    color: #000000 !important;
+    font-size: 14pt !important;
+    font-family: inherit !important;
+    resize: none !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .address-input::placeholder {
+    color: transparent !important;
+    opacity: 0 !important;
   }
 
   .stamp-divider {

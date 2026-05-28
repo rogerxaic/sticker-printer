@@ -36,6 +36,7 @@ export const settings = {
       this.rotations[i] = 0;
       this.fits[i] = 'contain';
       this.scales[i] = 1;
+      this.addresses[i] = '';
     }
     this.selectedIndex = 0;
     this.showToast("🧹 Sticker sheet reset!");

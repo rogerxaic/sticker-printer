@@ -7,6 +7,7 @@ export const state = {
   fits: ['contain', 'contain', 'contain', 'contain', 'contain', 'contain', 'contain', 'contain'],
   scales: [1, 1, 1, 1, 1, 1, 1, 1],
   cellModes: ['single', 'single', 'single', 'single'],
+  addresses: ['', '', '', '', '', '', '', ''],
   selectedIndex: 0,
   dragOverIndex: null,
   layoutLocked: true,

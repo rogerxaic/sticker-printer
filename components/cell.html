@@ -73,6 +73,11 @@
         </button>
       </div>
     </div>
+    <textarea 
+      class="address-input" 
+      x-model="$store.stickerStore.addresses[index * 2]" 
+      placeholder="Enter recipient address..."
+      @click.stop></textarea>
   </div>
 
   <!-- Divider / Cut Line -->
@@ -117,5 +122,10 @@
         </button>
       </div>
     </div>
+    <textarea 
+      class="address-input" 
+      x-model="$store.stickerStore.addresses[index * 2 + 1]" 
+      placeholder="Enter recipient address..."
+      @click.stop></textarea>
   </div>
 </div>
