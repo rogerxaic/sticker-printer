@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/toolbar.css"><link rel="stylesheet" href="css/locks-toast.css"><link rel="stylesheet" href="css/print.css">
 </head>
 <body>
-  <div class="app-container" x-data x-init="$store.stickerStore.init()" :style="$store.stickerStore.rootStyles()" id="app-container" style="display: none;">
+  <div class="app-container" x-data :style="$store.stickerStore.rootStyles()" id="app-container" style="display: none;">
     <div id="sidebar-placeholder"></div>
     <main class="preview-area">
       <div class="sheet-wrapper">
@@ -64,7 +64,7 @@
         console.error("Bootstrap loading failed:", err);
       }
     }
-    bootstrap();
+    await bootstrap();
   </script>
 </body>
 </html>

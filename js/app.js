@@ -14,6 +14,9 @@ document.addEventListener('alpine:init', () => {
     ...events,
 
     init() {
+      if (this.initialized) return;
+      this.initialized = true;
+
       // Load layout settings from local storage
       Object.keys(this.layout).forEach(key => {
         const savedValue = localStorage.getItem(`sticker_printer_${key}`);

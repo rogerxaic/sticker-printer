@@ -1,6 +1,7 @@
 /* js/state.js */
 export const state = {
   // STATE VARIABLES
+  initialized: false,
   images: [null, null, null, null],
   rotations: [0, 0, 0, 0],
   fits: ['contain', 'contain', 'contain', 'contain'],
