@@ -7,6 +7,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Alpine.js CDN -->
+  <script 
+    defer 
+    src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.7/dist/cdn.min.js" 
+    integrity="sha384-cixRWCxxaN2ZlgSKys0xeW++971nkjz01WMhvEVsYDm6hlVuq/vm14WM+CLfIkBB" 
+    crossorigin="anonymous">
+  </script>
+
   <style>
     /* CSS VARIABLES FOR THE GRID LAYOUT (in mm) */
     :root {
@@ -409,6 +418,10 @@
       z-index: 2;
     }
 
+    .sticker-cell.has-image::after {
+      display: none !important;
+    }
+
     .sticker-cell:hover {
       background: #f5f3ff;
       border-color: rgba(99, 102, 241, 0.5);
@@ -463,12 +476,6 @@
       font-size: 0.7rem;
       opacity: 0.7;
       margin-top: -0.25rem;
-    }
-
-    /* Hide placeholder and helper labels when an image is present */
-    .sticker-cell:has(.sticker-image) .cell-placeholder,
-    .sticker-cell:has(.sticker-image)::after {
-      display: none !important;
     }
 
     /* CELL IMAGE DISPLAY */
@@ -678,7 +685,7 @@
         height: 297mm !important;
       }
 
-      .sidebar, .toast-container, .delete-btn {
+      .sidebar, .toast-container, .delete-btn, .cell-toolbar {
         display: none !important;
       }
 
@@ -736,6 +743,7 @@
         box-shadow: none !important;
         width: 100% !important;
         height: 100% !important;
+        padding: var(--sticker-padding) !important;
       }
 
       .sticker-cell::after {
@@ -750,15 +758,15 @@
         display: block !important;
         width: 100% !important;
         height: 100% !important;
-        object-fit: contain !important;
+        object-fit: var(--fit) !important; /* Managed dynamically */
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
     }
   </style>
 </head>
-<body>
-  <div class="app-container">
+<body x-data="stickerApp()" x-init="init()">
+  <div class="app-container" :style="rootStyles()">
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -787,11 +795,11 @@
           <div class="dimension-grid">
             <div class="dimension-box">
               <div class="label">Width</div>
-              <div class="val" id="disp-sticker-width">98.75 mm</div>
+              <div class="val" x-text="stickerWidth + ' mm'">98.75 mm</div>
             </div>
             <div class="dimension-box">
               <div class="label">Height</div>
-              <div class="val" id="disp-sticker-height">141.00 mm</div>
+              <div class="val" x-text="stickerHeight + ' mm'">141.00 mm</div>
             </div>
           </div>
         </div>
@@ -802,11 +810,11 @@
           <div class="control-group" style="margin-bottom: 0;">
             <div class="control-label">
               <span>Image Padding</span>
-              <span class="control-value" id="val-padding">0.00</span>
+              <span class="control-value" x-text="layout.padding.toFixed(2)">0.00</span>
             </div>
             <div class="input-row">
-              <input type="range" id="input-padding" min="0" max="1" step="0.05" value="0.00">
-              <input type="number" id="num-padding" min="0" max="1" step="0.05" value="0.00">
+              <input type="range" x-model.number="layout.padding" min="0" max="1" step="0.05" value="0.00">
+              <input type="number" x-model.number="layout.padding" min="0" max="1" step="0.05" value="0.00">
             </div>
           </div>
         </div>
@@ -816,8 +824,8 @@
           <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <span>⚙️ Sheet Layout (cm)</span>
             <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <button class="lock-toggle-btn" id="btn-lock-layout" title="Unlock margins/gaps configurations">🔒 Locked</button>
-              <button class="reset-icon-btn" id="btn-reset-layout" title="Reset layout to defaults">↻</button>
+              <button class="lock-toggle-btn" :class="{ 'unlocked': !layoutLocked }" @click="layoutLocked = !layoutLocked" x-text="layoutLocked ? '🔒 Locked' : '🔓 Unlocked'">🔒 Locked</button>
+              <button class="reset-icon-btn" @click="resetLayout()" title="Reset layout to defaults">↻</button>
             </div>
           </div>
           
@@ -826,11 +834,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Top Margin</span>
-                <span class="control-value" id="val-top">0.75</span>
+                <span class="control-value" x-text="layout.top.toFixed(2)">0.75</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-top" min="0" max="3" step="0.05" value="0.75" disabled>
-                <input type="number" id="num-top" min="0" max="3" step="0.05" value="0.75" disabled>
+                <input type="range" x-model.number="layout.top" min="0" max="3" step="0.05" value="0.75" :disabled="layoutLocked">
+                <input type="number" x-model.number="layout.top" min="0" max="3" step="0.05" value="0.75" :disabled="layoutLocked">
               </div>
             </div>
 
@@ -838,11 +846,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Bottom Margin</span>
-                <span class="control-value" id="val-bottom">0.75</span>
+                <span class="control-value" x-text="layout.bottom.toFixed(2)">0.75</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-bottom" min="0" max="3" step="0.05" value="0.75" disabled>
-                <input type="number" id="num-bottom" min="0" max="3" step="0.05" value="0.75" disabled>
+                <input type="range" x-model.number="layout.bottom" min="0" max="3" step="0.05" value="0.75" :disabled="layoutLocked">
+                <input type="number" x-model.number="layout.bottom" min="0" max="3" step="0.05" value="0.75" :disabled="layoutLocked">
               </div>
             </div>
 
@@ -850,11 +858,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Left Margin</span>
-                <span class="control-value" id="val-left">0.50</span>
+                <span class="control-value" x-text="layout.left.toFixed(2)">0.50</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-left" min="0" max="3" step="0.05" value="0.5" disabled>
-                <input type="number" id="num-left" min="0" max="3" step="0.05" value="0.5" disabled>
+                <input type="range" x-model.number="layout.left" min="0" max="3" step="0.05" value="0.5" :disabled="layoutLocked">
+                <input type="number" x-model.number="layout.left" min="0" max="3" step="0.05" value="0.5" :disabled="layoutLocked">
               </div>
             </div>
 
@@ -862,11 +870,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Right Margin</span>
-                <span class="control-value" id="val-right">0.50</span>
+                <span class="control-value" x-text="layout.right.toFixed(2)">0.50</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-right" min="0" max="3" step="0.05" value="0.5" disabled>
-                <input type="number" id="num-right" min="0" max="3" step="0.05" value="0.5" disabled>
+                <input type="range" x-model.number="layout.right" min="0" max="3" step="0.05" value="0.5" :disabled="layoutLocked">
+                <input type="number" x-model.number="layout.right" min="0" max="3" step="0.05" value="0.5" :disabled="layoutLocked">
               </div>
             </div>
 
@@ -874,11 +882,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Center Vert. Gap</span>
-                <span class="control-value" id="val-gap-x">0.25</span>
+                <span class="control-value" x-text="layout.gapX.toFixed(2)">0.25</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-gap-x" min="0" max="2" step="0.05" value="0.25" disabled>
-                <input type="number" id="num-gap-x" min="0" max="2" step="0.05" value="0.25" disabled>
+                <input type="range" x-model.number="layout.gapX" min="0" max="2" step="0.05" value="0.25" :disabled="layoutLocked">
+                <input type="number" x-model.number="layout.gapX" min="0" max="2" step="0.05" value="0.25" :disabled="layoutLocked">
               </div>
             </div>
 
@@ -886,11 +894,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Center Horiz. Gap</span>
-                <span class="control-value" id="val-gap-y">0.00</span>
+                <span class="control-value" x-text="layout.gapY.toFixed(2)">0.00</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-gap-y" min="0" max="2" step="0.05" value="0" disabled>
-                <input type="number" id="num-gap-y" min="0" max="2" step="0.05" value="0" disabled>
+                <input type="range" x-model.number="layout.gapY" min="0" max="2" step="0.05" value="0" :disabled="layoutLocked">
+                <input type="number" x-model.number="layout.gapY" min="0" max="2" step="0.05" value="0" :disabled="layoutLocked">
               </div>
             </div>
           </div>
@@ -901,8 +909,8 @@
           <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
             <span>🔧 Print Calibration (mm)</span>
             <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <button class="lock-toggle-btn" id="btn-lock-calibration" title="Unlock calibration parameters">🔒 Locked</button>
-              <button class="reset-icon-btn" id="btn-reset-calibration" title="Reset offsets to 0">↻</button>
+              <button class="lock-toggle-btn" :class="{ 'unlocked': !calibrationLocked }" @click="calibrationLocked = !calibrationLocked" x-text="calibrationLocked ? '🔒 Locked' : '🔓 Unlocked'">🔒 Locked</button>
+              <button class="reset-icon-btn" @click="resetCalibration()" title="Reset offsets to 0">↻</button>
             </div>
           </div>
           <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">
@@ -914,11 +922,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Horiz. Shift (X)</span>
-                <span class="control-value" id="val-offset-x">0</span>
+                <span class="control-value" x-text="layout.offsetX.toFixed(2)">0</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-offset-x" min="-10" max="10" step="0.5" value="0" disabled>
-                <input type="number" id="num-offset-x" min="-10" max="10" step="0.5" value="0" disabled>
+                <input type="range" x-model.number="layout.offsetX" min="-10" max="10" step="0.5" value="0" :disabled="calibrationLocked">
+                <input type="number" x-model.number="layout.offsetX" min="-10" max="10" step="0.5" value="0" :disabled="calibrationLocked">
               </div>
             </div>
 
@@ -926,11 +934,11 @@
             <div class="control-group">
               <div class="control-label">
                 <span>Vert. Shift (Y)</span>
-                <span class="control-value" id="val-offset-y">0</span>
+                <span class="control-value" x-text="layout.offsetY.toFixed(2)">0</span>
               </div>
               <div class="input-row">
-                <input type="range" id="input-offset-y" min="-10" max="10" step="0.5" value="0" disabled>
-                <input type="number" id="num-offset-y" min="-10" max="10" step="0.5" value="0" disabled>
+                <input type="range" x-model.number="layout.offsetY" min="-10" max="10" step="0.5" value="0" :disabled="calibrationLocked">
+                <input type="number" x-model.number="layout.offsetY" min="-10" max="10" step="0.5" value="0" :disabled="calibrationLocked">
               </div>
             </div>
           </div>
@@ -939,15 +947,15 @@
 
       <!-- SIDEBAR FOOTER ACTIONS -->
       <div class="sidebar-footer">
-        <button class="btn btn-primary" id="btn-print">
+        <button class="btn btn-primary" id="btn-print" @click="printPage()">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.82l-.24-2.22A2 2 0 018.46 9.4h7.08a2 2 0 011.98 2.2l-.24 2.22M16.5 19.5h-9a1.5 1.5 0 01-1.5-1.5v-2.25a1.5 1.5 0 011.5-1.5h9a1.5 1.5 0 011.5 1.5V18a1.5 1.5 0 01-1.5 1.5zM16.5 6V4.5A1.5 1.5 0 0015 3H9a1.5 1.5 0 00-1.5 1.5V6m9 0H6.75"></path>
           </svg>
           Print Sticker Sheet
         </button>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-          <button class="btn btn-secondary" id="btn-demo">Demo images</button>
-          <button class="btn btn-danger" id="btn-clear-all">Clear Sheet</button>
+          <button class="btn btn-secondary" id="btn-demo" @click="loadDemo()">Demo images</button>
+          <button class="btn btn-danger" id="btn-clear-all" @click="clearAll()">Clear Sheet</button>
         </div>
       </div>
     </aside>
@@ -957,631 +965,495 @@
       <div class="sheet-wrapper">
         <div class="a4-sheet" id="a4-sheet">
           <div class="sticker-grid">
+            
             <!-- STICKER 1 (Top Left) -->
-            <div class="sticker-cell selected" data-index="0" data-label="Top-Left">
-              <div class="cell-placeholder">
+            <div class="sticker-cell" 
+                 :class="{ 'selected': selectedIndex === 0, 'has-image': images[0] !== null }"
+                 @click="selectCell(0)"
+                 @dragover.prevent="dragOverIndex = 0"
+                 @dragleave="if (dragOverIndex === 0) dragOverIndex = null"
+                 @drop.prevent="cellDrop($event, 0)"
+                 data-index="0" 
+                 data-label="Top-Left">
+              <div class="cell-placeholder" x-show="!images[0]">
                 <svg fill="none" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <span>Select & Paste Image</span>
                 <span class="sub">Sticker 1</span>
               </div>
-              <div class="cell-toolbar">
-                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 0)">
+              <img 
+                x-show="images[0]"
+                :src="images[0]"
+                class="sticker-image"
+                :style="{ objectFit: fits[0], transform: `rotate(${rotations[0]}deg) scale(${scales[0]})` }"
+                alt="Sticker 1"
+              />
+              <div class="cell-toolbar" x-show="images[0]">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="rotate(0)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
                 </button>
-                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 0)">
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="toggleFit(0)" x-text="fits[0] === 'contain' ? 'Contain' : 'Cover'">
                   Contain
                 </button>
-                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 0)">
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="deleteImage(0)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                 </button>
               </div>
             </div>
 
             <!-- STICKER 2 (Top Right) -->
-            <div class="sticker-cell" data-index="1" data-label="Top-Right">
-              <div class="cell-placeholder">
+            <div class="sticker-cell" 
+                 :class="{ 'selected': selectedIndex === 1, 'has-image': images[1] !== null }"
+                 @click="selectCell(1)"
+                 @dragover.prevent="dragOverIndex = 1"
+                 @dragleave="if (dragOverIndex === 1) dragOverIndex = null"
+                 @drop.prevent="cellDrop($event, 1)"
+                 data-index="1" 
+                 data-label="Top-Right">
+              <div class="cell-placeholder" x-show="!images[1]">
                 <svg fill="none" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <span>Select & Paste Image</span>
                 <span class="sub">Sticker 2</span>
               </div>
-              <div class="cell-toolbar">
-                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 1)">
+              <img 
+                x-show="images[1]"
+                :src="images[1]"
+                class="sticker-image"
+                :style="{ objectFit: fits[1], transform: `rotate(${rotations[1]}deg) scale(${scales[1]})` }"
+                alt="Sticker 2"
+              />
+              <div class="cell-toolbar" x-show="images[1]">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="rotate(1)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
                 </button>
-                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 1)">
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="toggleFit(1)" x-text="fits[1] === 'contain' ? 'Contain' : 'Cover'">
                   Contain
                 </button>
-                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 1)">
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="deleteImage(1)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                 </button>
               </div>
             </div>
 
             <!-- STICKER 3 (Bottom Left) -->
-            <div class="sticker-cell" data-index="2" data-label="Bottom-Left">
-              <div class="cell-placeholder">
+            <div class="sticker-cell" 
+                 :class="{ 'selected': selectedIndex === 2, 'has-image': images[2] !== null }"
+                 @click="selectCell(2)"
+                 @dragover.prevent="dragOverIndex = 2"
+                 @dragleave="if (dragOverIndex === 2) dragOverIndex = null"
+                 @drop.prevent="cellDrop($event, 2)"
+                 data-index="2" 
+                 data-label="Bottom-Left">
+              <div class="cell-placeholder" x-show="!images[2]">
                 <svg fill="none" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <span>Select & Paste Image</span>
                 <span class="sub">Sticker 3</span>
               </div>
-              <div class="cell-toolbar">
-                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 2)">
+              <img 
+                x-show="images[2]"
+                :src="images[2]"
+                class="sticker-image"
+                :style="{ objectFit: fits[2], transform: `rotate(${rotations[2]}deg) scale(${scales[2]})` }"
+                alt="Sticker 3"
+              />
+              <div class="cell-toolbar" x-show="images[2]">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="rotate(2)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
                 </button>
-                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 2)">
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="toggleFit(2)" x-text="fits[2] === 'contain' ? 'Contain' : 'Cover'">
                   Contain
                 </button>
-                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 2)">
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="deleteImage(2)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                 </button>
               </div>
             </div>
 
             <!-- STICKER 4 (Bottom Right) -->
-            <div class="sticker-cell" data-index="3" data-label="Bottom-Right">
-              <div class="cell-placeholder">
+            <div class="sticker-cell" 
+                 :class="{ 'selected': selectedIndex === 3, 'has-image': images[3] !== null }"
+                 @click="selectCell(3)"
+                 @dragover.prevent="dragOverIndex = 3"
+                 @dragleave="if (dragOverIndex === 3) dragOverIndex = null"
+                 @drop.prevent="cellDrop($event, 3)"
+                 data-index="3" 
+                 data-label="Bottom-Right">
+              <div class="cell-placeholder" x-show="!images[3]">
                 <svg fill="none" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <span>Select & Paste Image</span>
                 <span class="sub">Sticker 4</span>
               </div>
-              <div class="cell-toolbar">
-                <button class="toolbar-btn rotate-btn" title="Rotate 90°" onclick="rotateStickerImage(event, 3)">
+              <img 
+                x-show="images[3]"
+                :src="images[3]"
+                class="sticker-image"
+                :style="{ objectFit: fits[3], transform: `rotate(${rotations[3]}deg) scale(${scales[3]})` }"
+                alt="Sticker 4"
+              />
+              <div class="cell-toolbar" x-show="images[3]">
+                <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="rotate(3)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
                 </button>
-                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" onclick="toggleStickerFit(event, 3)">
+                <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="toggleFit(3)" x-text="fits[3] === 'contain' ? 'Contain' : 'Cover'">
                   Contain
                 </button>
-                <button class="toolbar-btn delete-icon-btn" title="Delete Image" onclick="deleteStickerImage(event, 3)">
+                <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="deleteImage(3)">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </div>
     </main>
 
     <!-- HIDDEN INPUT FOR FILE PICKER FALLBACK -->
-    <input type="file" id="file-picker" class="hidden-file-input" accept="image/*">
+    <input type="file" id="file-picker" class="hidden-file-input" accept="image/*" @change="handleFilePickerChange($event)">
 
     <!-- TOAST CONTAINER -->
-    <div class="toast-container" id="toast-container"></div>
+    <div class="toast-container" id="toast-container">
+      <template x-for="toast in toasts" :key="toast.id">
+        <div class="toast" x-text="toast.message"></div>
+      </template>
+    </div>
   </div>
 
   <script>
-    // Image state holder: holds the active ObjectURL or null for the 4 slots
-    const stickerImages = [null, null, null, null];
-    const stickerRotations = [0, 0, 0, 0]; // 0, 90, 180, 270 degrees
-    const stickerFits = ['contain', 'contain', 'contain', 'contain']; // 'contain' or 'cover'
-    let selectedIndex = 0; // Default to first sticker
-
-    // DOM ELEMENTS
-    const cells = document.querySelectorAll('.sticker-cell');
-    const filePicker = document.getElementById('file-picker');
-    const a4Sheet = document.getElementById('a4-sheet');
-    const btnPrint = document.getElementById('btn-print');
-    const btnClearAll = document.getElementById('btn-clear-all');
-    const btnDemo = document.getElementById('btn-demo');
-    
-    // Sliders & inputs mapping (Both Layout and Calibration offsets)
-    const layoutSettings = {
-      top: { slider: 'input-top', num: 'num-top', disp: 'val-top', cssVar: '--margin-top', unit: 'cm' },
-      bottom: { slider: 'input-bottom', num: 'num-bottom', disp: 'val-bottom', cssVar: '--margin-bottom', unit: 'cm' },
-      left: { slider: 'input-left', num: 'num-left', disp: 'val-left', cssVar: '--margin-left', unit: 'cm' },
-      right: { slider: 'input-right', num: 'num-right', disp: 'val-right', cssVar: '--margin-right', unit: 'cm' },
-      gapX: { slider: 'input-gap-x', num: 'num-gap-x', disp: 'val-gap-x', cssVar: '--gap-x', unit: 'cm' },
-      gapY: { slider: 'input-gap-y', num: 'num-gap-y', disp: 'val-gap-y', cssVar: '--gap-y', unit: 'cm' },
-      padding: { slider: 'input-padding', num: 'num-padding', disp: 'val-padding', cssVar: '--sticker-padding', unit: 'cm' },
-      offsetX: { slider: 'input-offset-x', num: 'num-offset-x', disp: 'val-offset-x', cssVar: '--offset-x', unit: 'mm' },
-      offsetY: { slider: 'input-offset-y', num: 'num-offset-y', disp: 'val-offset-y', cssVar: '--offset-y', unit: 'mm' },
-    };
-
-    // Initialize layout settings from local storage or defaults
-    function initLayout() {
-      // Load saved values or set defaults
-      Object.keys(layoutSettings).forEach(key => {
-        const config = layoutSettings[key];
-        const savedValue = localStorage.getItem(`sticker_printer_${key}`);
-        const defaultVal = document.getElementById(config.slider).getAttribute('value') || document.getElementById(config.slider).value;
-        const val = savedValue !== null ? savedValue : defaultVal;
+    function stickerApp() {
+      return {
+        // STATE VARIABLES
+        images: [null, null, null, null],
+        rotations: [0, 0, 0, 0],
+        fits: ['contain', 'contain', 'contain', 'contain'],
+        scales: [1, 1, 1, 1],
+        selectedIndex: 0,
+        dragOverIndex: null,
+        layoutLocked: true,
+        calibrationLocked: true,
+        toasts: [],
         
-        // Update input element values
-        document.getElementById(config.slider).value = val;
-        document.getElementById(config.num).value = val;
-        document.getElementById(config.disp).textContent = Number(val).toFixed(2);
-        
-        // Set CSS variables
-        document.documentElement.style.setProperty(config.cssVar, `${val}${config.unit}`);
-      });
-      
-      calculateStickerDimensions();
-      setupLayoutListeners();
-      setupLockControls();
-    }
-
-    // Connect slider + numeric input sync logic
-    function setupLayoutListeners() {
-      Object.keys(layoutSettings).forEach(key => {
-        const config = layoutSettings[key];
-        const slider = document.getElementById(config.slider);
-        const numberInput = document.getElementById(config.num);
-
-        const updateValue = (newVal) => {
-          slider.value = newVal;
-          numberInput.value = newVal;
-          document.getElementById(config.disp).textContent = Number(newVal).toFixed(2);
-          
-          // Apply to stylesheet
-          document.documentElement.style.setProperty(config.cssVar, `${newVal}${config.unit}`);
-          
-          // Save to local storage
-          localStorage.setItem(`sticker_printer_${key}`, newVal);
-          
-          calculateStickerDimensions();
-          resizeA4Sheet();
-        };
-
-        slider.addEventListener('input', (e) => updateValue(e.target.value));
-        numberInput.addEventListener('input', (e) => updateValue(e.target.value));
-      });
-    }
-
-    // Lock / Unlock toggling setup
-    function setupLockControls() {
-      // Layout Safety Lock
-      const btnLockLayout = document.getElementById('btn-lock-layout');
-      const layoutInputs = document.querySelectorAll('#layout-inputs-container input');
-      
-      btnLockLayout.addEventListener('click', () => {
-        const isLocked = btnLockLayout.textContent.includes('Locked');
-        if (isLocked) {
-          // Unlock
-          btnLockLayout.textContent = '🔓 Unlocked';
-          btnLockLayout.classList.add('unlocked');
-          layoutInputs.forEach(input => input.disabled = false);
-          showToast("🔓 Layout settings unlocked!");
-        } else {
-          // Lock
-          btnLockLayout.textContent = '🔒 Locked';
-          btnLockLayout.classList.remove('unlocked');
-          layoutInputs.forEach(input => input.disabled = true);
-          showToast("🔒 Layout settings locked!");
-        }
-      });
-
-      // Reset Layout defaults
-      const btnResetLayout = document.getElementById('btn-reset-layout');
-      btnResetLayout.addEventListener('click', () => {
-        const defaults = {
+        layout: {
           top: 0.75,
           bottom: 0.75,
           left: 0.50,
           right: 0.50,
           gapX: 0.25,
           gapY: 0.00,
-          padding: 0.00
-        };
-        Object.keys(defaults).forEach(key => {
-          const config = layoutSettings[key];
-          const val = defaults[key];
-          
-          document.getElementById(config.slider).value = val;
-          document.getElementById(config.num).value = val;
-          document.getElementById(config.disp).textContent = Number(val).toFixed(2);
-          document.documentElement.style.setProperty(config.cssVar, `${val}${config.unit}`);
-          localStorage.setItem(`sticker_printer_${key}`, val);
-        });
-        calculateStickerDimensions();
-        showToast("⚙️ Layout margins reset to defaults!");
-      });
+          padding: 0.00,
+          offsetX: 0.0,
+          offsetY: 0.0
+        },
 
-      // Calibration Safety Lock
-      const btnLockCalibration = document.getElementById('btn-lock-calibration');
-      const calibrationInputs = document.querySelectorAll('#calibration-inputs-container input');
-      
-      btnLockCalibration.addEventListener('click', () => {
-        const isLocked = btnLockCalibration.textContent.includes('Locked');
-        if (isLocked) {
-          // Unlock
-          btnLockCalibration.textContent = '🔓 Unlocked';
-          btnLockCalibration.classList.add('unlocked');
-          calibrationInputs.forEach(input => input.disabled = false);
-          showToast("🔓 Print Calibration unlocked!");
-        } else {
-          // Lock
-          btnLockCalibration.textContent = '🔒 Locked';
-          btnLockCalibration.classList.remove('unlocked');
-          calibrationInputs.forEach(input => input.disabled = true);
-          showToast("🔒 Print Calibration locked!");
-        }
-      });
+        // GETTERS (Computed Properties)
+        get stickerWidth() {
+          const left = parseFloat(this.layout.left) || 0;
+          const right = parseFloat(this.layout.right) || 0;
+          const gapX = parseFloat(this.layout.gapX) || 0;
+          return ((210 - (left + right) * 10 - gapX * 10) / 2).toFixed(2);
+        },
 
-      // Reset Calibration offsets
-      const btnResetCalibration = document.getElementById('btn-reset-calibration');
-      btnResetCalibration.addEventListener('click', () => {
-        const defaults = {
-          offsetX: 0,
-          offsetY: 0
-        };
-        Object.keys(defaults).forEach(key => {
-          const config = layoutSettings[key];
-          const val = defaults[key];
-          
-          document.getElementById(config.slider).value = val;
-          document.getElementById(config.num).value = val;
-          document.getElementById(config.disp).textContent = Number(val).toFixed(2);
-          document.documentElement.style.setProperty(config.cssVar, `${val}${config.unit}`);
-          localStorage.setItem(`sticker_printer_${key}`, val);
-        });
-        showToast("🔧 Print Calibration offsets reset to 0!");
-      });
-    }
+        get stickerHeight() {
+          const top = parseFloat(this.layout.top) || 0;
+          const bottom = parseFloat(this.layout.bottom) || 0;
+          const gapY = parseFloat(this.layout.gapY) || 0;
+          return ((297 - (top + bottom) * 10 - gapY * 10) / 2).toFixed(2);
+        },
 
-    // Calculate absolute dimensions in millimeters for layout review card
-    function calculateStickerDimensions() {
-      const topMargin = parseFloat(document.getElementById('num-top').value) * 10; // mm
-      const bottomMargin = parseFloat(document.getElementById('num-bottom').value) * 10; // mm
-      const leftMargin = parseFloat(document.getElementById('num-left').value) * 10; // mm
-      const rightMargin = parseFloat(document.getElementById('num-right').value) * 10; // mm
-      const gapX = parseFloat(document.getElementById('num-gap-x').value) * 10; // mm
-      const gapY = parseFloat(document.getElementById('num-gap-y').value) * 10; // mm
-
-      const totalPageW = 210; // mm
-      const totalPageH = 297; // mm
-
-      // Calculated Sticker Width: (PageWidth - margins - gapX) / 2
-      const stickerW = (totalPageW - leftMargin - rightMargin - gapX) / 2;
-      // Calculated Sticker Height: (PageHeight - margins - gapY) / 2
-      const stickerH = (totalPageH - topMargin - bottomMargin - gapY) / 2;
-
-      document.getElementById('disp-sticker-width').textContent = `${stickerW.toFixed(2)} mm`;
-      document.getElementById('disp-sticker-height').textContent = `${stickerH.toFixed(2)} mm`;
-    }
-
-    // Apply image styles (rotation + fit mode aspect ratio adjustments)
-    function applyImageStyles(index) {
-      const cell = cells[index];
-      const img = cell.querySelector('.sticker-image');
-      if (!img) return;
-
-      const rotation = stickerRotations[index];
-      const fit = stickerFits[index];
-
-      img.style.objectFit = fit;
-
-      // Calculate scale factor for 90 or 270 deg rotation
-      const w = cell.clientWidth;
-      const h = cell.clientHeight;
-      const ratio = w / h;
-
-      let scale = 1;
-      if (rotation === 90 || rotation === 270) {
-        if (fit === 'contain') {
-          scale = Math.min(ratio, 1 / ratio);
-        } else {
-          scale = Math.max(ratio, 1 / ratio);
-        }
-      }
-
-      img.style.transform = `rotate(${rotation}deg) scale(${scale})`;
-    }
-
-    // Rotate image by 90 deg increments
-    function rotateStickerImage(event, index) {
-      event.stopPropagation(); // Prevent trigger file selection
-      
-      stickerRotations[index] = (stickerRotations[index] + 90) % 360;
-      applyImageStyles(index);
-      showToast(`🔄 Sticker ${index + 1} rotated to ${stickerRotations[index]}°`);
-    }
-
-    // Toggle Fit mode between Contain and Cover
-    function toggleStickerFit(event, index) {
-      event.stopPropagation(); // Prevent trigger file selection
-      
-      const currentFit = stickerFits[index];
-      const newFit = currentFit === 'contain' ? 'cover' : 'contain';
-      stickerFits[index] = newFit;
-
-      // Update button text in the cell toolbar
-      const fitBtn = cells[index].querySelector('.fit-btn');
-      if (fitBtn) {
-        fitBtn.textContent = newFit.charAt(0).toUpperCase() + newFit.slice(1);
-      }
-
-      applyImageStyles(index);
-      showToast(`🖼️ Sticker ${index + 1} fit mode: ${newFit}`);
-    }
-
-    // CELL SELECTION
-    cells.forEach(cell => {
-      cell.addEventListener('click', (e) => {
-        // Prevent click trigger file-picker if clicking toolbar buttons
-        if (e.target.closest('.cell-toolbar')) return;
-        
-        const idx = parseInt(cell.getAttribute('data-index'));
-        selectStickerCell(idx);
-        
-        // If empty, open file picker as convenience fallback
-        if (!stickerImages[idx]) {
-          filePicker.click();
-        }
-      });
-      
-      // DRAG AND DROP
-      cell.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        cell.classList.add('selected');
-      });
-
-      cell.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        const idx = parseInt(cell.getAttribute('data-index'));
-        if (idx !== selectedIndex) {
-          cell.classList.remove('selected');
-        }
-      });
-
-      cell.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const idx = parseInt(cell.getAttribute('data-index'));
-        selectStickerCell(idx);
-        
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          const file = e.dataTransfer.files[0];
-          if (file.type.startsWith('image/')) {
-            loadImage(file, idx);
-          } else {
-            showToast("⚠️ Only images are supported!");
-          }
-        }
-      });
-    });
-
-    function selectStickerCell(index) {
-      selectedIndex = index;
-      cells.forEach((cell, idx) => {
-        if (idx === index) {
-          cell.classList.add('selected');
-        } else {
-          cell.classList.remove('selected');
-        }
-      });
-    }
-
-    // CLIPBOARD PASTE LISTENER (GLOBAL)
-    window.addEventListener('paste', (e) => {
-      const clipboardItems = e.clipboardData.items;
-      let foundImage = false;
-
-      for (let i = 0; i < clipboardItems.length; i++) {
-        const item = clipboardItems[i];
-        if (item.type.indexOf('image') !== -1) {
-          const file = item.getAsFile();
-          loadImage(file, selectedIndex);
-          foundImage = true;
-          break;
-        }
-      }
-
-      if (foundImage) {
-        showToast("📸 Image pasted from clipboard!");
-      }
-    });
-
-    // FILE PICKER SELECTION FALLBACK
-    filePicker.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        loadImage(e.target.files[0], selectedIndex);
-        e.target.value = ''; // Reset file picker state
-      }
-    });
-
-    // LOAD IMAGE FILE INTO SLOT
-    function loadImage(file, index) {
-      // Revoke old URL if exists to clear memory leak
-      if (stickerImages[index]) {
-        URL.revokeObjectURL(stickerImages[index]);
-      }
-
-      const objectUrl = URL.createObjectURL(file);
-      stickerImages[index] = objectUrl;
-
-      // Reset orientation and fit state for new image
-      stickerRotations[index] = 0;
-      stickerFits[index] = 'contain';
-
-      const cell = cells[index];
-      
-      // Reset fit mode button label
-      const fitBtn = cell.querySelector('.fit-btn');
-      if (fitBtn) fitBtn.textContent = 'Contain';
-
-      // Remove placeholder contents or old images
-      const existingImg = cell.querySelector('.sticker-image');
-      if (existingImg) {
-        existingImg.remove();
-      }
-
-      // Create and append image tag
-      const img = document.createElement('img');
-      img.src = objectUrl;
-      img.className = 'sticker-image';
-      img.alt = `Sticker image ${index + 1}`;
-      cell.appendChild(img);
-
-      // Apply initial style mappings
-      applyImageStyles(index);
-      
-      // Auto focus next empty cell for rapid sequential pasting
-      focusNextEmptyCell();
-    }
-
-    // Focus next cell that doesn't have an image
-    function focusNextEmptyCell() {
-      for (let i = 0; i < 4; i++) {
-        const nextIdx = (selectedIndex + 1 + i) % 4;
-        if (!stickerImages[nextIdx]) {
-          selectStickerCell(nextIdx);
-          break;
-        }
-      }
-    }
-
-    // DELETE STICKER SLOT IMAGE
-    function deleteStickerImage(event, index) {
-      event.stopPropagation(); // Avoid selecting cell
-      
-      if (stickerImages[index]) {
-        URL.revokeObjectURL(stickerImages[index]);
-        stickerImages[index] = null;
-      }
-      
-      stickerRotations[index] = 0;
-      stickerFits[index] = 'contain';
-
-      const cell = cells[index];
-      
-      const fitBtn = cell.querySelector('.fit-btn');
-      if (fitBtn) fitBtn.textContent = 'Contain';
-
-      const img = cell.querySelector('.sticker-image');
-      if (img) {
-        img.remove();
-      }
-      
-      selectStickerCell(index);
-      showToast(`🗑️ Sticker ${index + 1} cleared`);
-    }
-
-    // KEYBOARD DELETE HANDLER
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        const cell = cells[selectedIndex];
-        const img = cell.querySelector('.sticker-image');
-        if (img) {
-          deleteStickerImage(e, selectedIndex);
-        }
-      }
-    });
-
-    // PRINT TRIGGER
-    btnPrint.addEventListener('click', () => {
-      // Check if we have at least one image pasted
-      const hasImage = stickerImages.some(img => img !== null);
-      if (!hasImage) {
-        showToast("⚠️ Add at least one image before printing!");
-        return;
-      }
-      window.print();
-    });
-
-    // CLEAR ALL
-    btnClearAll.addEventListener('click', () => {
-      for (let i = 0; i < 4; i++) {
-        if (stickerImages[i]) {
-          URL.revokeObjectURL(stickerImages[i]);
-          stickerImages[i] = null;
-        }
-        stickerRotations[i] = 0;
-        stickerFits[i] = 'contain';
-        const img = cells[i].querySelector('.sticker-image');
-        if (img) img.remove();
-        
-        const fitBtn = cells[i].querySelector('.fit-btn');
-        if (fitBtn) fitBtn.textContent = 'Contain';
-      }
-      selectStickerCell(0);
-      showToast("🧹 Sticker sheet reset!");
-    });
-
-    // DEMO LOAD IMAGES
-    btnDemo.addEventListener('click', () => {
-      const demoImages = [
-        'https://picsum.photos/id/1025/600/800',
-        'https://picsum.photos/id/237/600/800',
-        'https://picsum.photos/id/1084/600/800',
-        'https://picsum.photos/id/200/600/800'
-      ];
-      
-      showToast("⏳ Fetching demo images...");
-      
-      demoImages.forEach((url, idx) => {
-        fetch(url)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], `demo_${idx}.jpg`, { type: 'image/jpeg' });
-            loadImage(file, idx);
-            if (idx === demoImages.length - 1) {
-              showToast("✨ Demo images loaded!");
+        // LIFECYCLE INITIALIZATION
+        init() {
+          // Load layout settings from local storage
+          Object.keys(this.layout).forEach(key => {
+            const savedValue = localStorage.getItem(`sticker_printer_${key}`);
+            if (savedValue !== null) {
+              this.layout[key] = parseFloat(savedValue);
             }
-          })
-          .catch(err => {
-            console.error("Demo load failed:", err);
-            showToast("❌ Failed loading demo images. Check internet connection.");
           });
-      });
-    });
 
-    // SCREEN RESIZER (Transform Scales A4 to Viewport)
-    function resizeA4Sheet() {
-      const wrapper = document.querySelector('.sheet-wrapper');
-      const sheet = document.getElementById('a4-sheet');
-      
-      const wrapperW = wrapper.clientWidth;
-      const wrapperH = wrapper.clientHeight;
-      
-      // Calculate sizes in px
-      const pxPerMm = 3.779527559; // CSS standard px per mm
-      const sheetW = 210 * pxPerMm;
-      const sheetH = 297 * pxPerMm;
-      
-      const padding = 40; // browser window spacing offset
-      const scaleX = (wrapperW - padding) / sheetW;
-      const scaleY = (wrapperH - padding) / sheetH;
-      const scale = Math.min(scaleX, scaleY, 1);
-      
-      sheet.style.transform = `scale(${scale})`;
+          // Trigger resize on start
+          this.$nextTick(() => {
+            this.resizeSheet();
+            // Reflow window size check again after browser rendering passes
+            setTimeout(() => this.resizeSheet(), 100);
+          });
 
-      // Recalculate styles for all active images to adapt rotation scales
-      for (let i = 0; i < 4; i++) {
-        applyImageStyles(i);
-      }
+          // Deep watch layout settings for local storage saves & resize updates
+          this.$watch('layout', () => {
+            Object.keys(this.layout).forEach(key => {
+              localStorage.setItem(`sticker_printer_${key}`, this.layout[key]);
+            });
+            this.resizeSheet();
+          }, { deep: true });
+
+          // Bind global window events
+          window.addEventListener('paste', (e) => this.handlePaste(e));
+          window.addEventListener('keydown', (e) => this.handleKeyDown(e));
+          window.addEventListener('resize', () => this.resizeSheet());
+        },
+
+        // CSS ROOT VARIABLES STYLING
+        rootStyles() {
+          return {
+            '--margin-top': `${this.layout.top}cm`,
+            '--margin-bottom': `${this.layout.bottom}cm`,
+            '--margin-left': `${this.layout.left}cm`,
+            '--margin-right': `${this.layout.right}cm`,
+            '--gap-x': `${this.layout.gapX}cm`,
+            '--gap-y': `${this.layout.gapY}cm`,
+            '--sticker-padding': `${this.layout.padding}cm`,
+            '--offset-x': `${this.layout.offsetX}mm`,
+            '--offset-y': `${this.layout.offsetY}mm`
+          };
+        },
+
+        // REACTION & INTERACTION FUNCTIONS
+        selectCell(index) {
+          this.selectedIndex = index;
+          // If cell is empty, trigger file picker immediately for convenience
+          if (!this.images[index]) {
+            document.getElementById('file-picker').click();
+          }
+        },
+
+        handleFilePickerChange(event) {
+          if (event.target.files && event.target.files.length > 0) {
+            this.loadImageFile(event.target.files[0], this.selectedIndex);
+            event.target.value = ''; // Clear file input state
+          }
+        },
+
+        loadImageFile(file, index) {
+          if (this.images[index]) {
+            URL.revokeObjectURL(this.images[index]);
+          }
+
+          this.images[index] = URL.createObjectURL(file);
+          this.rotations[index] = 0;
+          this.fits[index] = 'contain';
+          this.scales[index] = 1;
+
+          this.focusNextEmptyCell();
+        },
+
+        focusNextEmptyCell() {
+          for (let i = 0; i < 4; i++) {
+            const nextIdx = (this.selectedIndex + 1 + i) % 4;
+            if (!this.images[nextIdx]) {
+              this.selectedIndex = nextIdx;
+              break;
+            }
+          }
+        },
+
+        deleteImage(index) {
+          if (this.images[index]) {
+            URL.revokeObjectURL(this.images[index]);
+            this.images[index] = null;
+          }
+          this.rotations[index] = 0;
+          this.fits[index] = 'contain';
+          this.scales[index] = 1;
+          this.selectedIndex = index;
+          this.showToast(`🗑️ Sticker ${index + 1} cleared`);
+        },
+
+        rotate(index) {
+          this.rotations[index] = (this.rotations[index] + 90) % 360;
+          this.updateRotationScales();
+          this.showToast(`🔄 Sticker ${index + 1} rotated to ${this.rotations[index]}°`);
+        },
+
+        toggleFit(index) {
+          this.fits[index] = this.fits[index] === 'contain' ? 'cover' : 'contain';
+          this.updateRotationScales();
+          this.showToast(`🖼️ Sticker ${index + 1} fit mode: ${this.fits[index]}`);
+        },
+
+        // Recalculates rotation scale dynamically based on current aspect ratio
+        updateRotationScales() {
+          const cellElements = document.querySelectorAll('.sticker-cell');
+          for (let i = 0; i < 4; i++) {
+            const cellEl = cellElements[i];
+            if (!cellEl) continue;
+
+            const rotation = this.rotations[i];
+            const fit = this.fits[i];
+
+            if (rotation !== 90 && rotation !== 270) {
+              this.scales[i] = 1;
+              continue;
+            }
+
+            const w = cellEl.clientWidth;
+            const h = cellEl.clientHeight;
+            if (w === 0 || h === 0) {
+              this.scales[i] = 1;
+              continue;
+            }
+
+            const ratio = w / h;
+            this.scales[i] = fit === 'contain' ? Math.min(ratio, 1 / ratio) : Math.max(ratio, 1 / ratio);
+          }
+        },
+
+        // EVENT HANDLERS
+        handlePaste(event) {
+          const clipboardItems = event.clipboardData.items;
+          let foundImage = false;
+
+          for (let i = 0; i < clipboardItems.length; i++) {
+            const item = clipboardItems[i];
+            if (item.type.indexOf('image') !== -1) {
+              const file = item.getAsFile();
+              this.loadImageFile(file, this.selectedIndex);
+              foundImage = true;
+              break;
+            }
+          }
+
+          if (foundImage) {
+            this.showToast("📸 Image pasted from clipboard!");
+          }
+        },
+
+        handleKeyDown(event) {
+          if (event.key === 'Delete' || event.key === 'Backspace') {
+            const activeImage = this.images[this.selectedIndex];
+            if (activeImage) {
+              this.deleteImage(this.selectedIndex);
+            }
+          }
+        },
+
+        cellDrop(event, index) {
+          this.dragOverIndex = null;
+          this.selectedIndex = index;
+
+          if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+            const file = event.dataTransfer.files[0];
+            if (file.type.startsWith('image/')) {
+              this.loadImageFile(file, index);
+              this.showToast("📸 Image dropped successfully!");
+            } else {
+              this.showToast("⚠️ Only images are supported!");
+            }
+          }
+        },
+
+        // PRINT PAGE
+        printPage() {
+          const hasImage = this.images.some(img => img !== null);
+          if (!hasImage) {
+            this.showToast("⚠️ Add at least one image before printing!");
+            return;
+          }
+          window.print();
+        },
+
+        // RESET DEFAULTS
+        resetLayout() {
+          this.layout.top = 0.75;
+          this.layout.bottom = 0.75;
+          this.layout.left = 0.50;
+          this.layout.right = 0.50;
+          this.layout.gapX = 0.25;
+          this.layout.gapY = 0.00;
+          this.layout.padding = 0.00;
+          this.showToast("⚙️ Layout margins reset to defaults!");
+        },
+
+        resetCalibration() {
+          this.layout.offsetX = 0.0;
+          this.layout.offsetY = 0.0;
+          this.showToast("🔧 Print Calibration offsets reset to 0!");
+        },
+
+        clearAll() {
+          for (let i = 0; i < 4; i++) {
+            if (this.images[i]) {
+              URL.revokeObjectURL(this.images[i]);
+              this.images[i] = null;
+            }
+            this.rotations[i] = 0;
+            this.fits[i] = 'contain';
+            this.scales[i] = 1;
+          }
+          this.selectedIndex = 0;
+          this.showToast("🧹 Sticker sheet reset!");
+        },
+
+        loadDemo() {
+          const demoImages = [
+            'https://picsum.photos/id/1025/600/800',
+            'https://picsum.photos/id/237/600/800',
+            'https://picsum.photos/id/1084/600/800',
+            'https://picsum.photos/id/200/600/800'
+          ];
+          
+          this.showToast("⏳ Fetching demo images...");
+          
+          demoImages.forEach((url, idx) => {
+            fetch(url)
+              .then(res => res.blob())
+              .then(blob => {
+                const file = new File([blob], `demo_${idx}.jpg`, { type: 'image/jpeg' });
+                this.loadImageFile(file, idx);
+                if (idx === demoImages.length - 1) {
+                  this.showToast("✨ Demo images loaded!");
+                }
+              })
+              .catch(err => {
+                console.error("Demo load failed:", err);
+                this.showToast("❌ Failed loading demo images. Check internet connection.");
+              });
+          });
+        },
+
+        // RESIZING SCALE CALCULATION
+        resizeSheet() {
+          const wrapper = document.querySelector('.sheet-wrapper');
+          const sheet = document.getElementById('a4-sheet');
+          if (!wrapper || !sheet) return;
+
+          const wrapperW = wrapper.clientWidth;
+          const wrapperH = wrapper.clientHeight;
+          
+          const pxPerMm = 3.779527559; // CSS standard px per mm
+          const sheetW = 210 * pxPerMm;
+          const sheetH = 297 * pxPerMm;
+          
+          const padding = 40;
+          const scaleX = (wrapperW - padding) / sheetW;
+          const scaleY = (wrapperH - padding) / sheetH;
+          const scale = Math.min(scaleX, scaleY, 1);
+          
+          sheet.style.transform = `scale(${scale})`;
+
+          // Defer rotation scale calculations to next DOM update cycle
+          this.$nextTick(() => {
+            this.updateRotationScales();
+          });
+        },
+
+        // TOAST ENGINE
+        showToast(message) {
+          const id = Date.now() + Math.random();
+          this.toasts.push({ id, message });
+          
+          // Dismiss toast in 3s
+          setTimeout(() => {
+            this.toasts = this.toasts.filter(t => t.id !== id);
+          }, 3000);
+        }
+      };
     }
-
-    // Toast Notification helper
-    function showToast(message) {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
-      container.appendChild(toast);
-      
-      // Remove toast after 3s
-      setTimeout(() => {
-        toast.style.animation = 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) reverse';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-
-    // WINDOW ACTIONS
-    window.addEventListener('resize', resizeA4Sheet);
-    
-    // Init on start
-    window.addEventListener('DOMContentLoaded', () => {
-      initLayout();
-      resizeA4Sheet();
-      // Ensure visual scale is refreshed after fonts / layout settles
-      setTimeout(resizeA4Sheet, 100);
-    });
   </script>
 </body>
 </html>
