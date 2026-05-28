@@ -1,7 +1,7 @@
 /* js/utils.js */
 export const utils = {
   updateRotationScales() {
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 8; i++) {
       this.scales[i] = 1;
     }
   },

@@ -1,0 +1,37 @@
+<div class="card">
+  <div class="section-title">📮 Sticker/Stamp Modes</div>
+  <div class="modes-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+    <template x-for="(mode, idx) in $store.stickerStore.cellModes" :key="idx">
+      <div class="mode-item" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-main);" x-text="['Top-Left', 'Top-Right', 'Bottom-Left', 'Bottom-Right'][idx]">Slot Name</span>
+        <div class="segmented-control" style="display: flex; background: rgba(0,0,0,0.25); padding: 3px; border-radius: 8px; border: 1px solid var(--border-glass);">
+          <button 
+            @click="$store.stickerStore.setCellMode(idx, 'single')"
+            type="button"
+            style="border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);"
+            :style="mode === 'single' ? 'background: var(--accent); color: white; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);' : ''"
+            :class="{ 'active': mode === 'single' }">
+            Sticker
+          </button>
+          <button 
+            @click="$store.stickerStore.setCellMode(idx, 'dual')"
+            type="button"
+            style="border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted);"
+            :style="mode === 'dual' ? 'background: var(--accent); color: white; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);' : ''"
+            :class="{ 'active': mode === 'dual' }">
+            Dual Stamp
+          </button>
+        </div>
+      </div>
+    </template>
+  </div>
+  
+  <div style="display: flex; gap: 0.5rem; margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid var(--border-glass);">
+    <button @click="$store.stickerStore.setAllCellModes('single')" type="button" class="btn btn-secondary" style="flex: 1; font-size: 0.72rem; padding: 6px; border-radius: 6px; min-height: unset; height: auto;">
+      All Stickers
+    </button>
+    <button @click="$store.stickerStore.setAllCellModes('dual')" type="button" class="btn btn-secondary" style="flex: 1; font-size: 0.72rem; padding: 6px; border-radius: 6px; min-height: unset; height: auto;">
+      All Stamps
+    </button>
+  </div>
+</div>

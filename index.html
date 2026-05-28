@@ -30,22 +30,26 @@
 
     async function bootstrap() {
       try {
-        const parts = ['sidebar-header', 'sidebar-instructions', 'sidebar-dimensions', 'sidebar-inset', 'sidebar-layout', 'sidebar-calibration', 'sidebar-footer', 'cell'];
+        const parts = ['sidebar-header', 'sidebar-instructions', 'sidebar-modes', 'sidebar-dimensions', 'sidebar-inset', 'sidebar-layout', 'sidebar-calibration', 'sidebar-footer', 'cell'];
         const htmls = await Promise.all(parts.map(p => fetch(`components/${p}.html`).then(r => r.text())));
         
-        document.getElementById('sidebar-placeholder').outerHTML = htmls.slice(0, 7).join('');
+        document.getElementById('sidebar-placeholder').outerHTML = htmls.slice(0, 8).join('');
         
-        const cellInner = htmls[7];
+        const cellInner = htmls[8];
         const labels = ['Top-Left', 'Top-Right', 'Bottom-Left', 'Bottom-Right'];
         let gridHtml = '<div class="sticker-grid">';
         for (let i = 0; i < 4; i++) {
           gridHtml += `
             <div class="sticker-cell" x-data="{ index: ${i} }"
-                 :class="{ 'selected': $store.stickerStore.selectedIndex === index, 'has-image': $store.stickerStore.images[index] !== null }"
-                 @click="$store.stickerStore.selectCell(index)"
-                 @dragover.prevent="$store.stickerStore.dragOverIndex = index"
-                 @dragleave="if ($store.stickerStore.dragOverIndex === index) $store.stickerStore.dragOverIndex = null"
-                 @drop.prevent="$store.stickerStore.cellDrop($event, index)"
+                 :class="{ 
+                   'selected': $store.stickerStore.cellModes[index] === 'single' && $store.stickerStore.selectedIndex === index * 2, 
+                   'has-image': $store.stickerStore.cellModes[index] === 'single' && $store.stickerStore.images[index * 2] !== null,
+                   'dual-mode': $store.stickerStore.cellModes[index] === 'dual'
+                 }"
+                 @click="if ($store.stickerStore.cellModes[index] === 'single') $store.stickerStore.selectCell(index * 2)"
+                 @dragover.prevent="if ($store.stickerStore.cellModes[index] === 'single') $store.stickerStore.dragOverIndex = index * 2"
+                 @dragleave="if ($store.stickerStore.cellModes[index] === 'single' && $store.stickerStore.dragOverIndex === index * 2) $store.stickerStore.dragOverIndex = null"
+                 @drop.prevent="if ($store.stickerStore.cellModes[index] === 'single') $store.stickerStore.cellDrop($event, index * 2)"
                  data-index="${i}" data-label="${labels[i]}">
               ${cellInner}
             </div>`;

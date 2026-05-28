@@ -1,30 +1,121 @@
-<div class="cell-placeholder" x-show="!$store.stickerStore.images[index]">
-  <svg fill="none" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-  </svg>
-  <span>Select & Paste Image</span>
-  <span class="sub" x-text="'Sticker ' + (index + 1)">Sticker 1</span>
+<!-- Single Layout -->
+<div class="single-layout" x-show="$store.stickerStore.cellModes[index] === 'single'" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+  <div class="cell-placeholder" x-show="!$store.stickerStore.images[index * 2]">
+    <svg fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+    </svg>
+    <span>Select & Paste Image</span>
+    <span class="sub" x-text="'Sticker ' + (index + 1)">Sticker 1</span>
+  </div>
+  <img 
+    x-show="$store.stickerStore.images[index * 2]"
+    :src="$store.stickerStore.images[index * 2]"
+    class="sticker-image"
+    :class="{
+      'rotated-90': $store.stickerStore.rotations[index * 2] === 90,
+      'rotated-180': $store.stickerStore.rotations[index * 2] === 180,
+      'rotated-270': $store.stickerStore.rotations[index * 2] === 270
+    }"
+    :style="{ objectFit: $store.stickerStore.fits[index * 2], transform: `rotate(${$store.stickerStore.rotations[index * 2]}deg) scale(${$store.stickerStore.scales[index * 2]})` }"
+    alt="Sticker"
+  />
+  <div class="cell-toolbar" x-show="$store.stickerStore.images[index * 2]">
+    <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="$store.stickerStore.rotate(index * 2)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+    </button>
+    <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="$store.stickerStore.toggleFit(index * 2)" x-text="$store.stickerStore.fits[index * 2] === 'contain' ? 'Contain' : 'Cover'">
+      Contain
+    </button>
+    <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="$store.stickerStore.deleteImage(index * 2)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+    </button>
+  </div>
 </div>
-<img 
-  x-show="$store.stickerStore.images[index]"
-  :src="$store.stickerStore.images[index]"
-  class="sticker-image"
-  :class="{
-    'rotated-90': $store.stickerStore.rotations[index] === 90,
-    'rotated-180': $store.stickerStore.rotations[index] === 180,
-    'rotated-270': $store.stickerStore.rotations[index] === 270
-  }"
-  :style="{ objectFit: $store.stickerStore.fits[index], transform: `rotate(${$store.stickerStore.rotations[index]}deg) scale(${$store.stickerStore.scales[index]})` }"
-  alt="Sticker"
-/>
-<div class="cell-toolbar" x-show="$store.stickerStore.images[index]">
-  <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="$store.stickerStore.rotate(index)">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
-  </button>
-  <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="$store.stickerStore.toggleFit(index)" x-text="$store.stickerStore.fits[index] === 'contain' ? 'Contain' : 'Cover'">
-    Contain
-  </button>
-  <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="$store.stickerStore.deleteImage(index)">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-  </button>
+
+<!-- Dual Layout -->
+<div class="dual-layout" x-show="$store.stickerStore.cellModes[index] === 'dual'" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+  <!-- Top Stamp (index * 2) -->
+  <div class="stamp-sub-cell" 
+       :class="{ 'selected': $store.stickerStore.selectedIndex === index * 2, 'has-image': $store.stickerStore.images[index * 2] !== null }"
+       @click.stop="$store.stickerStore.selectCell(index * 2)"
+       @dragover.prevent="$store.stickerStore.dragOverIndex = index * 2"
+       @dragleave="if ($store.stickerStore.dragOverIndex === index * 2) $store.stickerStore.dragOverIndex = null"
+       @drop.prevent="$store.stickerStore.cellDrop($event, index * 2)">
+    <div class="stamp-box">
+      <div class="cell-placeholder" x-show="!$store.stickerStore.images[index * 2]" style="padding: 0.5rem; gap: 0.25rem;">
+        <svg fill="none" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span style="font-size: 0.72rem;">Paste Top Stamp</span>
+        <span class="sub" style="font-size: 0.65rem; opacity: 0.8;">66.55 x 36.48 mm</span>
+      </div>
+      <img 
+        x-show="$store.stickerStore.images[index * 2]"
+        :src="$store.stickerStore.images[index * 2]"
+        class="sticker-image"
+        :class="{
+          'rotated-90': $store.stickerStore.rotations[index * 2] === 90,
+          'rotated-180': $store.stickerStore.rotations[index * 2] === 180,
+          'rotated-270': $store.stickerStore.rotations[index * 2] === 270
+        }"
+        :style="{ objectFit: $store.stickerStore.fits[index * 2], transform: `rotate(${$store.stickerStore.rotations[index * 2]}deg) scale(${$store.stickerStore.scales[index * 2]})` }"
+        alt="Top Stamp"
+      />
+      <div class="cell-toolbar" x-show="$store.stickerStore.images[index * 2]">
+        <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="$store.stickerStore.rotate(index * 2)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+        </button>
+        <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="$store.stickerStore.toggleFit(index * 2)" x-text="$store.stickerStore.fits[index * 2] === 'contain' ? 'Contain' : 'Cover'">
+          Contain
+        </button>
+        <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="$store.stickerStore.deleteImage(index * 2)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Divider / Cut Line -->
+  <div class="stamp-divider"></div>
+
+  <!-- Bottom Stamp (index * 2 + 1) -->
+  <div class="stamp-sub-cell" 
+       :class="{ 'selected': $store.stickerStore.selectedIndex === index * 2 + 1, 'has-image': $store.stickerStore.images[index * 2 + 1] !== null }"
+       @click.stop="$store.stickerStore.selectCell(index * 2 + 1)"
+       @dragover.prevent="$store.stickerStore.dragOverIndex = index * 2 + 1"
+       @dragleave="if ($store.stickerStore.dragOverIndex === index * 2 + 1) $store.stickerStore.dragOverIndex = null"
+       @drop.prevent="$store.stickerStore.cellDrop($event, index * 2 + 1)">
+    <div class="stamp-box">
+      <div class="cell-placeholder" x-show="!$store.stickerStore.images[index * 2 + 1]" style="padding: 0.5rem; gap: 0.25rem;">
+        <svg fill="none" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span style="font-size: 0.72rem;">Paste Bottom Stamp</span>
+        <span class="sub" style="font-size: 0.65rem; opacity: 0.8;">66.55 x 36.48 mm</span>
+      </div>
+      <img 
+        x-show="$store.stickerStore.images[index * 2 + 1]"
+        :src="$store.stickerStore.images[index * 2 + 1]"
+        class="sticker-image"
+        :class="{
+          'rotated-90': $store.stickerStore.rotations[index * 2 + 1] === 90,
+          'rotated-180': $store.stickerStore.rotations[index * 2 + 1] === 180,
+          'rotated-270': $store.stickerStore.rotations[index * 2 + 1] === 270
+        }"
+        :style="{ objectFit: $store.stickerStore.fits[index * 2 + 1], transform: `rotate(${$store.stickerStore.rotations[index * 2 + 1]}deg) scale(${$store.stickerStore.scales[index * 2 + 1]})` }"
+        alt="Bottom Stamp"
+      />
+      <div class="cell-toolbar" x-show="$store.stickerStore.images[index * 2 + 1]">
+        <button class="toolbar-btn rotate-btn" title="Rotate 90°" @click.stop="$store.stickerStore.rotate(index * 2 + 1)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l.73-.73"/></svg>
+        </button>
+        <button class="toolbar-btn fit-btn" title="Toggle Fit Mode (Contain / Cover)" @click.stop="$store.stickerStore.toggleFit(index * 2 + 1)" x-text="$store.stickerStore.fits[index * 2 + 1] === 'contain' ? 'Contain' : 'Cover'">
+          Contain
+        </button>
+        <button class="toolbar-btn delete-icon-btn" title="Delete Image" @click.stop="$store.stickerStore.deleteImage(index * 2 + 1)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

@@ -26,7 +26,7 @@ export const settings = {
   },
 
   clearAll() {
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 8; i++) {
       if (this.images[i]) {
         if (this.images[i].startsWith('blob:')) {
           URL.revokeObjectURL(this.images[i]);
@@ -46,7 +46,11 @@ export const settings = {
       'https://picsum.photos/id/1025/600/800',
       'https://picsum.photos/id/237/600/800',
       'https://picsum.photos/id/1084/600/800',
-      'https://picsum.photos/id/200/600/800'
+      'https://picsum.photos/id/200/600/800',
+      'https://picsum.photos/id/1062/600/800',
+      'https://picsum.photos/id/1074/600/800',
+      'https://picsum.photos/id/1080/600/800',
+      'https://picsum.photos/id/219/600/800'
     ];
     this.showToast("⏳ Fetching demo images...");
     demoImages.forEach((url, idx) => {

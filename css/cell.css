@@ -88,3 +88,71 @@
   opacity: 0.7;
   margin-top: -0.25rem;
 }
+
+/* Dual mode layouts */
+.sticker-cell.dual-mode {
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+  background: transparent;
+  border: none;
+  cursor: default;
+  overflow: visible;
+}
+
+.stamp-sub-cell {
+  flex: 1;
+  width: 100%;
+  height: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #fafafb;
+  border: 1px dashed rgba(99, 102, 241, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.stamp-sub-cell:hover {
+  background: #f5f3ff;
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.stamp-sub-cell.selected {
+  background: #eef2ff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) inset, 0 8px 24px rgba(99, 102, 241, 0.12);
+  z-index: 5;
+}
+
+.stamp-box {
+  width: 66.55mm;
+  height: 36.48mm;
+  border: 1px dotted rgba(99, 102, 241, 0.4);
+  border-radius: 4px;
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  transition: border-color 0.2s ease;
+  container-type: size;
+}
+
+.stamp-sub-cell.selected .stamp-box {
+  border-color: var(--accent);
+}
+
+.stamp-divider {
+  width: 100%;
+  height: 0;
+  border-top: 1px dashed rgba(99, 102, 241, 0.15);
+  margin: 0;
+  pointer-events: none;
+}

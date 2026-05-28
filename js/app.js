@@ -26,17 +26,49 @@ document.addEventListener('alpine:init', () => {
 
       // Load stickers from local storage
       try {
+        const savedCellModes = localStorage.getItem('sticker_printer_cell_modes');
+        if (savedCellModes) {
+          const parsed = JSON.parse(savedCellModes);
+          if (Array.isArray(parsed) && parsed.length === 4) {
+            this.cellModes = parsed;
+          }
+        }
+
         const savedImages = localStorage.getItem('sticker_printer_images');
-        if (savedImages) this.images = JSON.parse(savedImages);
+        if (savedImages) {
+          const parsed = JSON.parse(savedImages);
+          if (Array.isArray(parsed)) {
+            while (parsed.length < 8) parsed.push(null);
+            this.images = parsed;
+          }
+        }
 
         const savedRotations = localStorage.getItem('sticker_printer_rotations');
-        if (savedRotations) this.rotations = JSON.parse(savedRotations);
+        if (savedRotations) {
+          const parsed = JSON.parse(savedRotations);
+          if (Array.isArray(parsed)) {
+            while (parsed.length < 8) parsed.push(0);
+            this.rotations = parsed;
+          }
+        }
 
         const savedFits = localStorage.getItem('sticker_printer_fits');
-        if (savedFits) this.fits = JSON.parse(savedFits);
+        if (savedFits) {
+          const parsed = JSON.parse(savedFits);
+          if (Array.isArray(parsed)) {
+            while (parsed.length < 8) parsed.push('contain');
+            this.fits = parsed;
+          }
+        }
 
         const savedScales = localStorage.getItem('sticker_printer_scales');
-        if (savedScales) this.scales = JSON.parse(savedScales);
+        if (savedScales) {
+          const parsed = JSON.parse(savedScales);
+          if (Array.isArray(parsed)) {
+            while (parsed.length < 8) parsed.push(1);
+            this.scales = parsed;
+          }
+        }
       } catch (err) {
         console.error("Failed to load sticker data from localStorage:", err);
       }
@@ -53,6 +85,7 @@ document.addEventListener('alpine:init', () => {
         });
 
         try {
+          localStorage.setItem('sticker_printer_cell_modes', JSON.stringify(this.cellModes));
           localStorage.setItem('sticker_printer_images', JSON.stringify(this.images));
           localStorage.setItem('sticker_printer_rotations', JSON.stringify(this.rotations));
           localStorage.setItem('sticker_printer_fits', JSON.stringify(this.fits));

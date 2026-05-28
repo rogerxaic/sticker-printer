@@ -85,9 +85,13 @@ export const actions = {
   },
 
   focusNextEmptyCell() {
-    for (let i = 0; i < 4; i++) {
-      const nextIdx = (this.selectedIndex + 1 + i) % 4;
-      if (!this.images[nextIdx]) {
+    for (let i = 1; i <= 8; i++) {
+      const nextIdx = (this.selectedIndex + i) % 8;
+      const cellIdx = Math.floor(nextIdx / 2);
+      const isSubSlot = nextIdx % 2 === 1;
+      
+      const isActive = !isSubSlot || this.cellModes[cellIdx] === 'dual';
+      if (isActive && !this.images[nextIdx]) {
         this.selectedIndex = nextIdx;
         break;
       }
@@ -105,18 +109,53 @@ export const actions = {
     this.fits[index] = 'contain';
     this.scales[index] = 1;
     this.selectedIndex = index;
-    this.showToast(`🗑️ Sticker ${index + 1} cleared`);
+    
+    const cellNum = Math.floor(index / 2) + 1;
+    const isSub = index % 2 === 1;
+    const part = isSub ? "Bottom Stamp" : (this.cellModes[Math.floor(index / 2)] === 'dual' ? "Top Stamp" : "Sticker");
+    this.showToast(`🗑️ Cell ${cellNum} ${part} cleared`);
   },
 
   rotate(index) {
     this.rotations[index] = (this.rotations[index] + 90) % 360;
     this.updateRotationScales();
-    this.showToast(`🔄 Sticker ${index + 1} rotated to ${this.rotations[index]}°`);
+    const cellNum = Math.floor(index / 2) + 1;
+    const isSub = index % 2 === 1;
+    const part = isSub ? "Bottom Stamp" : (this.cellModes[Math.floor(index / 2)] === 'dual' ? "Top Stamp" : "Sticker");
+    this.showToast(`🔄 Cell ${cellNum} ${part} rotated to ${this.rotations[index]}°`);
   },
 
   toggleFit(index) {
     this.fits[index] = this.fits[index] === 'contain' ? 'cover' : 'contain';
     this.updateRotationScales();
-    this.showToast(`🖼️ Sticker ${index + 1} fit mode: ${this.fits[index]}`);
+    const cellNum = Math.floor(index / 2) + 1;
+    const isSub = index % 2 === 1;
+    const part = isSub ? "Bottom Stamp" : (this.cellModes[Math.floor(index / 2)] === 'dual' ? "Top Stamp" : "Sticker");
+    this.showToast(`🖼️ Cell ${cellNum} ${part} fit mode: ${this.fits[index]}`);
+  },
+
+  setCellMode(index, mode) {
+    if (this.cellModes[index] === mode) return;
+    this.cellModes[index] = mode;
+    
+    if (mode === 'single') {
+      if (this.selectedIndex === index * 2 + 1) {
+        this.selectedIndex = index * 2;
+      }
+    }
+    
+    this.showToast(`Slot ${index + 1} layout is now ${mode === 'single' ? 'Single Sticker' : 'Dual Stamp (66.55x36.48mm)'}`);
+  },
+
+  setAllCellModes(mode) {
+    for (let i = 0; i < 4; i++) {
+      this.cellModes[i] = mode;
+    }
+    if (mode === 'single') {
+      if (this.selectedIndex % 2 === 1) {
+        this.selectedIndex = this.selectedIndex - 1;
+      }
+    }
+    this.showToast(`Set all slots to ${mode === 'single' ? 'Stickers' : 'Dual Stamps'}`);
   }
 };

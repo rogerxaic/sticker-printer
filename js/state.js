@@ -2,10 +2,11 @@
 export const state = {
   // STATE VARIABLES
   initialized: false,
-  images: [null, null, null, null],
-  rotations: [0, 0, 0, 0],
-  fits: ['contain', 'contain', 'contain', 'contain'],
-  scales: [1, 1, 1, 1],
+  images: [null, null, null, null, null, null, null, null],
+  rotations: [0, 0, 0, 0, 0, 0, 0, 0],
+  fits: ['contain', 'contain', 'contain', 'contain', 'contain', 'contain', 'contain', 'contain'],
+  scales: [1, 1, 1, 1, 1, 1, 1, 1],
+  cellModes: ['single', 'single', 'single', 'single'],
   selectedIndex: 0,
   dragOverIndex: null,
   layoutLocked: true,

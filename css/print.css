@@ -105,4 +105,39 @@
     width: 100cqh !important;
     height: 100cqw !important;
   }
+
+  .sticker-cell.dual-mode {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .stamp-sub-cell {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    height: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  .stamp-box {
+    width: 66.55mm !important;
+    height: 36.48mm !important;
+    border: none !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .stamp-divider {
+    display: none !important;
+  }
 }
