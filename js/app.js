@@ -24,12 +24,47 @@ document.addEventListener('alpine:init', () => {
         }
       });
 
-      // Set up reactive effect for auto-saving layout and resizing
+      // Load stickers from local storage
+      try {
+        const savedImages = localStorage.getItem('sticker_printer_images');
+        if (savedImages) this.images = JSON.parse(savedImages);
+
+        const savedRotations = localStorage.getItem('sticker_printer_rotations');
+        if (savedRotations) this.rotations = JSON.parse(savedRotations);
+
+        const savedFits = localStorage.getItem('sticker_printer_fits');
+        if (savedFits) this.fits = JSON.parse(savedFits);
+
+        const savedScales = localStorage.getItem('sticker_printer_scales');
+        if (savedScales) this.scales = JSON.parse(savedScales);
+      } catch (err) {
+        console.error("Failed to load sticker data from localStorage:", err);
+      }
+
+      // Set up reactive effect for auto-saving layout, stickers, and resizing
       Alpine.effect(() => {
         Object.keys(this.layout).forEach(key => {
           const val = this.layout[key];
-          localStorage.setItem(`sticker_printer_${key}`, val);
+          try {
+            localStorage.setItem(`sticker_printer_${key}`, val);
+          } catch (e) {
+            console.error(`Failed to save layout ${key}:`, e);
+          }
         });
+
+        try {
+          localStorage.setItem('sticker_printer_images', JSON.stringify(this.images));
+          localStorage.setItem('sticker_printer_rotations', JSON.stringify(this.rotations));
+          localStorage.setItem('sticker_printer_fits', JSON.stringify(this.fits));
+          localStorage.setItem('sticker_printer_scales', JSON.stringify(this.scales));
+        } catch (e) {
+          if (e.name === 'QuotaExceededError' || e.code === 22) {
+            this.showToast("⚠️ Storage full! Unable to save some images for next session.");
+          } else {
+            console.error("Failed to save stickers to localStorage:", e);
+          }
+        }
+
         this.resizeSheet();
       });
 

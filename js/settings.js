@@ -28,7 +28,9 @@ export const settings = {
   clearAll() {
     for (let i = 0; i < 4; i++) {
       if (this.images[i]) {
-        URL.revokeObjectURL(this.images[i]);
+        if (this.images[i].startsWith('blob:')) {
+          URL.revokeObjectURL(this.images[i]);
+        }
         this.images[i] = null;
       }
       this.rotations[i] = 0;
